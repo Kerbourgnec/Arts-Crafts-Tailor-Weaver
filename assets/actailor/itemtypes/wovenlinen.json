@@ -1,0 +1,51 @@
+// Woven linen (lane/linen-output): what a loom cut gives (src/Weaving/ClothOutput.cs). Same pattern attributes, shelf and
+// display case as woven cloth; a folded sheet without the cloth's plank. Placed like vanilla linen (a Decor block, no
+// ground pile; lane/loom-feedback-8): right click any face, sneaking or not, gives a patterned panel (TapestryHanging).
+// Linen + stick in the grid (recipes/grid/linen.json) → vanilla cloth (one vanilla colour) or woven cloth.
+{
+	code: "wovenlinen",
+	class: "actailor.ItemWovenLinen",
+	shape: { base: "actailor:item/wovenlinen" },
+	textures: {
+		color: { base: "game:block/cloth/linen/normal1" }
+	},
+	attributes: {
+		clothingRepairStrength: 0.5,
+		inContainerTexture: { base: "game:block/cloth/linen/normal1" },
+		handbook: {
+			extraSections: [
+				{ title: "actailor:wovencloth-handbook-uses-title", text: "actailor:wovenlinen-handbook-uses-text" }
+			]
+		},
+		displaycaseable: true,
+		shelvable: true,
+		displayable: {
+			shelf: { size: { width: 12, height: 3, length: 6 } }
+		},
+		onDisplayTransform: {
+			translation: { x: 0.05, y: 0, z: 0 },
+			rotation: { x: 0, y: -45, z: 0 },
+			origin: { x: 0.5, y: 0, z: 0.5 },
+			scale: 0.8
+		}
+	},
+	creativeinventory: { general: ["*"], items: ["*"] },
+	maxstacksize: 32,
+	materialDensity: 210,
+	guiTransform: {
+		rotation: { x: -166, y: 78, z: -45 },
+		origin: { x: 0.5, y: 0.1, z: 0.58 },
+		scale: 2.5
+	},
+	tpHandTransform: {
+		translation: { x: -1, y: -0.9, z: -1.35 },
+		rotation: { x: 99, y: -180, z: 180 },
+		scale: 0.49
+	},
+	groundTransform: {
+		translation: { x: 0, y: 0.25, z: 0 },
+		rotation: { x: 0, y: 0, z: 0 },
+		origin: { x: 0.5, y: 0.31, z: 0.5299 },
+		scale: 4
+	}
+}

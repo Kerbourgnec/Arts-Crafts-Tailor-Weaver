@@ -1,0 +1,16 @@
+{
+  "ingredientPattern": "___,_MW,_CF",
+  "ingredients": {
+    "W": { "type": "item", "code": "actailor:hpspinningwheelwheelitem-*", "name": "wood" },
+    "M": { "type": "item", "code": "actailor:hpmoaitem-*", "name": "wood" },
+    "F": { "type": "item", "code": "actailor:hpspinningwheelframe-*", "name": "wood" },
+    "C": { "type": "block", "code": "game:chair-*" }
+  },
+  "width": 3,
+  "height": 3,
+  "output": {
+    "type": "block",
+    "code": "actailor:hpspinningwheel-{wood}-north",
+    "quantity": 1
+  }
+}

@@ -1,0 +1,20 @@
+{
+	"textureWidth": 16,
+	"textureHeight": 16,
+	"textures": {},
+	"elements": [
+		{
+			"name": "carpet",
+			"from": [ 0.5, 0, 0.5 ],
+			"to": [ 15.5, 0.25, 15.5 ],
+			"faces": {
+				"north": { "texture": "#pattern", "uv": [ 0, 0, 16, 0.25 ] },
+				"east": { "texture": "#pattern", "uv": [ 0, 0, 16, 0.25 ] },
+				"south": { "texture": "#pattern", "uv": [ 0, 15.75, 16, 16 ] },
+				"west": { "texture": "#pattern", "uv": [ 0, 0, 16, 0.25 ] },
+				"up": { "texture": "#pattern", "uv": [ 0, 0, 16, 16 ] },
+				"down": { "texture": "#pattern", "uv": [ 0, 0, 16, 16 ] }
+			}
+		}
+	]
+}

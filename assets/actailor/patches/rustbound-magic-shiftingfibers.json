@@ -1,0 +1,86 @@
+[
+  {
+    "op": "addmerge",
+    "path": "/attributes",
+    "value": {},
+    "file": "rustboundmagic:itemtypes/resources/shiftingfibers.json",
+    "dependsOn": [ { "modid": "rustboundmagic" } ]
+  },
+  {
+    "op": "addmerge",
+    "path": "/attributes/handbook",
+    "value": {
+      "extraSections": [
+        {
+        }
+      ]
+    },
+    "file": "rustboundmagic:itemtypes/resources/shiftingfibers.json",
+    "dependsOn": [ { "modid": "rustboundmagic" } ]
+  },
+  {
+    "op": "add",
+    "path": "/attributes/spinningProps",
+    "value": {
+      "outputType": "game:flaxtwine",
+      "outputQuantity": 1,
+      "inputQuantity": 6,
+      "spinTime": 4
+    },
+    "file": "rustboundmagic:itemtypes/resources/shiftingfibers.json",
+    "dependsOn": [ { "modid": "rustboundmagic" } ]
+  },
+  {
+    "op": "add",
+    "path": "/attributes/handbook",
+    "value": {
+      "extraSections": [
+        {
+          "title": "actailor:handbook-rustbound-shiftingfibers-spinning",
+          "text": "actailor:handbook-rustbound-shiftingfibers-spinning-text"
+        }
+      ]
+    },
+    "file": "rustboundmagic:itemtypes/resources/shiftingfibers.json",
+    "dependsOn": [ { "modid": "rustboundmagic" } ]
+  },
+  {
+    "op": "add",
+    "path": "/attributes/weavingProps",
+    "value": {
+      "outputType": "rustboundmagic:mageweave-none-normal-down",
+      "inputQuantity": 23,
+      "outputQuantity": 3
+    },
+    "file": "rustboundmagic:itemtypes/resources/shiftingfibers.json",
+    "dependsOn": [ { "modid": "rustboundmagic" } ]
+  },
+  {
+    "op": "addmerge",
+    "path": "/attributes/handbook",
+    "value": {
+      "extraSections": [
+        {
+          "title": "actailor:handbook-rustbound-shiftingfibers-weaving",
+          "text": "actailor:handbook-rustbound-shiftingfibers-weaving-text"
+        }
+      ]
+    },
+    "file": "rustboundmagic:itemtypes/resources/shiftingfibers.json",
+    "dependsOn": [ { "modid": "rustboundmagic" } ]
+  },
+  {
+    "op": "addmerge",
+    "path": "/attributes/handbook",
+    "value": {
+      "extraSections": [
+        {
+          "title": "actailor:handbook-rustbound-mageweave-weaving",
+          "text": "actailor:handbook-rustbound-mageweave-weaving-text"
+        }
+      ]
+    },
+    "file": "rustboundmagic:blocktypes/mageweave.json",
+    "dependsOn": [ { "modid": "rustboundmagic" } ]
+  }
+]

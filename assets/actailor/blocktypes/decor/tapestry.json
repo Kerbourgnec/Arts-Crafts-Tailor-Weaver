@@ -1,0 +1,56 @@
+// Woven cloth or woven linen placed on a block face (src/Decor/TapestryHanging.cs): side = direction from the panel to
+// the block it hangs on (as vanilla game:tapestry; lane/loom-feedback-6: also up = ceiling, down = floor, like vanilla
+// linen on all 6 faces). Woven linen: right click any face, no tool. Woven cloth: with a hammer (as before).
+// Thin panel, no collision, like wallpaper; drops / picks the item it was placed from (pattern intact).
+// Floor / ceiling panels turn to the placer (block entity turnDeg, as the small carpet). Not craftable, not in the
+// creative inventory: the cloth itself is the item. Old wall tapestries (north..west) are unchanged.
+{
+	code: "tapestry",
+	class: "actailor.BlockClothTapestry",
+	entityClass: "actailor.Patterned",
+	variantgroups: [
+		{ code: "side", states: ["north", "east", "south", "west", "up", "down"] }
+	],
+	attributes: {
+		patternKeys: ["pattern"],
+		handbook: { exclude: true }
+	},
+	shapeByType: {
+		"*-north": { base: "actailor:block/decor/tapestry", rotateY: 0 },
+		"*-east": { base: "actailor:block/decor/tapestry", rotateY: 270 },
+		"*-south": { base: "actailor:block/decor/tapestry", rotateY: 180 },
+		"*-west": { base: "actailor:block/decor/tapestry", rotateY: 90 },
+		"*-up": { base: "actailor:block/decor/tapestry-ceiling" },
+		"*-down": { base: "actailor:block/decor/tapestry-floor" }
+	},
+	textures: {
+		pattern: { base: "game:block/cloth/linen/normal1" }
+	},
+	creativeinventory: {},
+	drawtype: "json",
+	blockmaterial: "Cloth",
+	sidesolid: { all: false },
+	sideopaque: { all: false },
+	emitSideAo: { all: false },
+	lightAbsorption: 0,
+	replaceable: 5001,
+	resistance: 0.1,
+	rainPermeable: true,
+	collisionbox: null,
+	selectionboxByType: {
+		"*-up": { x1: 0, y1: 0.9375, z1: 0, x2: 1, y2: 1, z2: 1 },
+		"*-down": { x1: 0, y1: 0, z1: 0, x2: 1, y2: 0.0625, z2: 1 },
+		"*": {
+			x1: 0, y1: 0, z1: 0, x2: 1, y2: 1, z2: 0.0625,
+			rotateYByType: { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }
+		}
+	},
+	combustibleProps: { burnTemperature: 150, burnDuration: 4 },
+	sounds: {
+		place: "game:block/cloth",
+		break: "game:block/cloth",
+		hit: "game:block/cloth",
+		walk: "game:walk/cloth"
+	},
+	materialDensity: 200
+}

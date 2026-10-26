@@ -1,0 +1,29 @@
+[
+  {
+    "op": "add",
+    "path": "/attributes/spinningProps",
+    "value": {
+      "outputType": "game:flaxtwine",
+      "outputQuantity": 1,
+      "inputQuantity": 2,
+      "spinTime": 4
+    },
+    "file": "floralzonescaribbeanregion:itemtypes/resource/cotton.json",
+    "side": "Server",
+    "dependsOn": [ { "modid": "floralzonescaribbeanregion" } ]
+  },
+  {
+    "op": "add",
+    "path": "/attributes/handbook",
+    "value": {
+      "extraSections": [
+        {
+          "title": "actailor:handbook-see-also-spinning",
+          "text": "actailor:handbook-see-also-spinning-text"
+        }
+      ]
+    },
+    "file": "floralzonescaribbeanregion:itemtypes/resource/cotton.json",
+    "dependsOn": [ { "modid": "floralzonescaribbeanregion" } ]
+  }
+]

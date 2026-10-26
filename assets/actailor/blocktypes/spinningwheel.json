@@ -1,0 +1,244 @@
+{
+  "code": "hpspinningwheel",
+  "class": "actailor.BlockSpinningWheel",
+  "entityClass": "actailor.BlockEntitySpinningWheel",
+  "tags": ["inanimate", "vehicle"],
+  "blockmaterial": "wood",
+  "variantgroups": [
+    {
+      "code": "wood",
+      "states": ["birch", "oak", "maple", "pine", "acacia", "kapok", "baldcypress", "larch", "redwood", "ebony", "walnut", "purpleheart", "aged"]
+    },
+    {
+      "code": "side",
+      "loadFromProperties": "abstract/horizontalorientation"
+    }
+  ],
+  "skipVariants": [
+    "aged", "veryaged"
+  ],
+  "creativeinventory": { "general":  [ "*-north" ]},
+  "behaviors": [
+    {
+      "name": "Multiblock",
+      "propertiesByType": {
+        "*-north": { "sizex": 2, "sizey": 2, "sizez": 2, "cposition": { "x": 0, "y": 0, "z": 0 } },
+        "*-east": { "sizex": 2, "sizey": 2, "sizez": 2, "cposition": { "x": 1, "y": 0, "z": 0 } },
+        "*-south": { "sizex": 2, "sizey": 2, "sizez": 2, "cposition": { "x": 1, "y": 0, "z": 1 } },
+        "*-west": { "sizex": 2, "sizey": 2, "sizez": 2, "cposition": { "x": 0, "y": 0, "z": 1 } }
+      }
+    },
+    {
+      "name": "HorizontalOrientable",
+      "properties": {
+        "dropBlockFace": "north"
+      }
+    },
+    {"name": "Container"}
+  ],
+  "textures": {
+    "linen": {"base": "game:block/linen"},
+    "oak": {"base": "game:block/wood/debarked/oak"},
+    "1": {"base": "game:block/wood/debarked/oak"},
+    "cover": {"base": "game:block/cloth/linen/normal1"},
+    "oak2": {"base": "game:block/wood/crudechair/oak"}
+  },
+  "texturesByType": {
+    "*-birch-*": {
+      "oak": { "base": "game:block/wood/debarked/birch" },
+      "oak2": { "base": "game:block/wood/debarked/birch" },
+      "1": { "base": "game:block/wood/debarked/birch" }
+    },
+    "*-oak-*": {
+      "oak": { "base": "game:block/wood/debarked/oak" },
+      "oak2": { "base": "game:block/wood/debarked/oak" },
+      "1": { "base": "game:block/wood/debarked/oak" }
+    },
+    "*-maple-*": {
+      "oak": { "base": "game:block/wood/debarked/maple" },
+      "oak2": { "base": "game:block/wood/debarked/maple" },
+      "1": { "base": "game:block/wood/debarked/maple" }
+    },
+    "*-pine-*": {
+      "oak": { "base": "game:block/wood/debarked/pine" },
+      "oak2": { "base": "game:block/wood/debarked/pine" },
+      "1": { "base": "game:block/wood/debarked/pine" }
+    },
+    "*-acacia-*": {
+      "oak": { "base": "game:block/wood/debarked/acacia" },
+      "oak2": { "base": "game:block/wood/debarked/acacia" },
+      "1": { "base": "game:block/wood/debarked/acacia" }
+    },
+    "*-kapok-*": {
+      "oak": { "base": "game:block/wood/debarked/kapok" },
+      "oak2": { "base": "game:block/wood/debarked/kapok" },
+      "1": { "base": "game:block/wood/debarked/kapok" }
+    },
+    "*-baldcypress-*": {
+      "oak": { "base": "game:block/wood/debarked/baldcypress" },
+      "oak2": { "base": "game:block/wood/debarked/baldcypress" },
+      "1": { "base": "game:block/wood/debarked/baldcypress" }
+    },
+    "*-larch-*": {
+      "oak": { "base": "game:block/wood/debarked/larch" },
+      "oak2": { "base": "game:block/wood/debarked/larch" },
+      "1": { "base": "game:block/wood/debarked/larch" }
+    },
+    "*-redwood-*": {
+      "oak": { "base": "game:block/wood/debarked/redwood" },
+      "oak2": { "base": "game:block/wood/debarked/redwood" },
+      "1": { "base": "game:block/wood/debarked/redwood" }
+    },
+    "*-ebony-*": {
+      "oak": { "base": "game:block/wood/debarked/ebony" },
+      "oak2": { "base": "game:block/wood/debarked/ebony" },
+      "1": { "base": "game:block/wood/debarked/ebony" }
+    },
+    "*-walnut-*": {
+      "oak": { "base": "game:block/wood/debarked/walnut" },
+      "oak2": { "base": "game:block/wood/debarked/walnut" },
+      "1": { "base": "game:block/wood/debarked/walnut" }
+    },
+    "*-purpleheart-*": {
+      "oak": { "base": "game:block/wood/debarked/purpleheart" },
+      "oak2": { "base": "game:block/wood/debarked/purpleheart" },
+      "1": { "base": "game:block/wood/debarked/purpleheart" }
+    },
+    "*-aged-*": {
+      "oak": { "base": "game:block/wood/debarked/aged" },
+      "oak2": { "base": "game:block/wood/debarked/aged" },
+      "1": { "base": "game:block/wood/debarked/aged"}
+    }
+  },
+  "entityBehaviors": [
+    { "name": "Animatable" }
+  ],
+  "attributes": {
+    "spinnable": true,
+    "valuesByMultiblockOffset": {
+      "collisionSelectionBoxesByType": {
+        "*-north": {
+          "0,0,0": [
+            { "x1": 0.2, "y1": 0, "z1": 0.13, "x2": 1, "y2": 0.7, "z2": 0.5 }
+          ],
+          "0,-1,0": [
+            { "x1": 0.1, "y1": -0.3, "z1": 0.18, "x2": 0.4, "y2": 0.45, "z2": 0.8 },
+            { "x1": 0.6, "y1": -0.3, "z1": 0.18, "x2": 0.85, "y2": 0.2, "z2": 0.75 }
+          ],
+          "0,-1,-1": [{ "x1": 0, "y1": 0, "z1": 0, "x2": 0, "y2": 0, "z2": 0 }],
+          "0,0,-1": [{ "x1": 0.5, "y1": 0, "z1": 0, "x2": 1.5, "y2": 0.65, "z2": 0.95 }],
+          "-1,-1,0": [{ "x1": 0, "y1": -0.6, "z1": 0.18, "x2": 1, "y2": 0.5, "z2": 0.55 }],
+          "-1,-1,-1": [{ "x1": 0, "y1": 0, "z1": 0, "x2": 0, "y2": 0, "z2": 0 }],
+          "-1,0,0": [
+            { "x1": 0, "y1": 0.4, "z1": 0.18, "x2": 1, "y2": 1.5, "z2": 0.55 },
+            { "x1": 0, "y1": 0, "z1": 0.18, "x2": 0.7, "y2": 0.4, "z2": 0.85 }
+          ],
+          "-1,0,-1": [{ "x1": -0.5, "y1": 0, "z1": 0, "x2": 0.5, "y2": 0.65, "z2": 0.95 }]
+        },
+        "*-east": {
+          "0,0,0": [
+            { "x1": 0.2, "y1": 0, "z1": 0.13, "x2": 1, "y2": 0.7, "z2": 0.5, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }
+          ],
+          "0,-1,0": [
+            { "x1": 0.1, "y1": -0.3, "z1": 0.18, "x2": 0.4, "y2": 0.45, "z2": 0.8, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }},
+            { "x1": 0.6, "y1": -0.3, "z1": 0.18, "x2": 0.85, "y2": 0.2, "z2": 0.75, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }}
+          ],
+          "1,-1,0": [{ "x1": 0, "y1": 0, "z1": 0, "x2": 0, "y2": 0, "z2": 0, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "1,0,0": [{ "x1": 0.5, "y1": 0, "z1": 0, "x2": 1.5, "y2": 0.65, "z2": 0.95, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "0,-1,-1": [{ "x1": 0, "y1": -0.6, "z1": 0.18, "x2": 1, "y2": 0.5, "z2": 0.55, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "1,-1,-1": [{ "x1": 0, "y1": 0, "z1": 0, "x2": 0, "y2": 0, "z2": 0, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "0,0,-1": [
+            { "x1": 0, "y1": 0.4, "z1": 0.18, "x2": 1, "y2": 1.5, "z2": 0.55, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }},
+            { "x1": 0, "y1": 0, "z1": 0.18, "x2": 0.7, "y2": 0.4, "z2": 0.85, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }}
+          ],
+          "1,0,-1": [{ "x1": -0.5, "y1": 0, "z1": 0, "x2": 0.5, "y2": 0.65, "z2": 0.95, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }]
+        },
+        "*-south": {
+          "0,0,0": [
+            { "x1": 0.2, "y1": 0, "z1": 0.13, "x2": 1, "y2": 0.7, "z2": 0.5, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }
+          ],
+          "0,-1,0": [
+            { "x1": 0.1, "y1": -0.3, "z1": 0.18, "x2": 0.4, "y2": 0.45, "z2": 0.8, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }},
+            { "x1": 0.6, "y1": -0.3, "z1": 0.18, "x2": 0.85, "y2": 0.2, "z2": 0.75, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }}
+          ],
+          "0,-1,1": [{ "x1": 0, "y1": 0, "z1": 0, "x2": 0, "y2": 0, "z2": 0, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "0,0,1": [{ "x1": 0.5, "y1": 0, "z1": 0, "x2": 1.5, "y2": 0.65, "z2": 0.95, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "1,-1,0": [{ "x1": 0, "y1": -0.6, "z1": 0.18, "x2": 1, "y2": 0.5, "z2": 0.55, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "1,-1,1": [{ "x1": 0, "y1": 0, "z1": 0, "x2": 0, "y2": 0, "z2": 0, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "1,0,0": [
+            { "x1": 0, "y1": 0.4, "z1": 0.18, "x2": 1, "y2": 1.5, "z2": 0.55, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }},
+            { "x1": 0, "y1": 0, "z1": 0.18, "x2": 0.7, "y2": 0.4, "z2": 0.85, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }}
+          ],
+          "1,0,1": [{ "x1": -0.5, "y1": 0, "z1": 0, "x2": 0.5, "y2": 0.65, "z2": 0.95, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }]
+        },
+        "*-west": {
+          "0,0,0": [
+            { "x1": 0.2, "y1": 0, "z1": 0.13, "x2": 1, "y2": 0.7, "z2": 0.5, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }
+          ],
+          "0,-1,0": [
+            { "x1": 0.1, "y1": -0.3, "z1": 0.18, "x2": 0.4, "y2": 0.45, "z2": 0.8, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }},
+            { "x1": 0.6, "y1": -0.3, "z1": 0.18, "x2": 0.85, "y2": 0.2, "z2": 0.75, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }}
+          ],
+          "-1,-1,0": [{ "x1": 0, "y1": 0, "z1": 0, "x2": 0, "y2": 0, "z2": 0, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "-1,0,0": [{ "x1": 0.5, "y1": 0, "z1": 0, "x2": 1.5, "y2": 0.65, "z2": 0.95, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "0,-1,1": [{ "x1": 0, "y1": -0.6, "z1": 0.18, "x2": 1, "y2": 0.5, "z2": 0.55, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "-1,-1,1": [{ "x1": 0, "y1": 0, "z1": 0, "x2": 0, "y2": 0, "z2": 0, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }],
+          "0,0,1": [
+            { "x1": 0, "y1": 0.4, "z1": 0.18, "x2": 1, "y2": 1.5, "z2": 0.55, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }},
+            { "x1": 0, "y1": 0, "z1": 0.18, "x2": 0.7, "y2": 0.4, "z2": 0.85, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 }}
+          ],
+          "-1,0,1": [{ "x1": -0.5, "y1": 0, "z1": 0, "x2": 0.5, "y2": 0.65, "z2": 0.95, "rotateYByType": { "*-north": 0, "*-east": 270, "*-south": 180, "*-west": 90 } }]
+        }
+      }
+    }
+  },
+  "sideopaque": {
+    "all": false
+  },
+  "server": {
+    "behaviors": [
+      { "code": "creaturecarrier" }
+    ]
+  },
+  "drawtype": "json",
+  "shapeByType": {
+    "*-north": {
+      "base": "block/spinningwheel",
+      "rotateY": 0
+    },
+    "*-east": {
+      "base": "block/spinningwheel",
+      "rotateY": 270
+    },
+    "*-west": {
+      "base": "block/spinningwheel",
+      "rotateY": 90
+    },
+    "*-south": {
+      "base": "block/spinningwheel",
+      "rotateY": 180
+    }
+  },
+  "lightAbsorption": 0,
+  "renderflags": 3,
+  "sidesolid": { "all": false },
+  "sounds": {
+    "place": "game:block/planks",
+    "hit": "game:block/planks",
+    "break": "game:block/planks",
+    "walk": "game:walk/wood"
+  },
+  "maxstacksize": 1,
+  "materialDensity": 600,
+  "heldTpIdleAnimation": "holdbothhandslarge",
+  "heldRightReadyAnimation": "heldblockready",
+  "heldTpUseAnimation": "twohandplaceblock",
+  "guiTransform": {
+    "translation": { "x": 0, "y": 8, "z": 0 },
+    "scale": 0.57
+  },
+  "tpHandTransform": {
+    "translation": { "x": -2.1, "y": -1.8, "z": -0.5 },
+    "rotation": { "x": 5, "y": 4, "z": -76 }
+  }
+}

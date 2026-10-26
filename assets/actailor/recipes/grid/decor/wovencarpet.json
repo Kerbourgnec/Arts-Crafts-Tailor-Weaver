@@ -1,0 +1,27 @@
+// Carpets from woven cloth (vanilla carpets are trade-only, so one cloth per carpet block; cloths are square,
+// lane/square-cloth). lane/linen-output: carpets are also woven directly on the loom (product picker), these stay as the
+// alternative. Small = one square cloth (16 x 16 or 32 x 32); large (1x2 blocks) = two cloths of any size, top = far tile
+// (BlockPatterned.OnCreatedByCrafting).
+// lane/cost-v2: no knife recipe: a cloth is one linen = one small carpet, so a knife adds nothing (value stays consistent). The 2x2 large carpet (CC,CC, or one 32 x 32 cloth) is gone.
+// Cloth size rule: ingredient recipeAttributes clothWidth / clothRows [min, max] (ItemWovenCloth.MatchesForCrafting).
+// Kept in sync with ItemWovenCloth.SmallCarpet* by the selftest.
+[
+	{
+		ingredientPattern: "C",
+		ingredients: {
+			"C": { type: "item", code: "actailor:wovencloth", quantity: 1, recipeAttributes: { clothWidth: [16, 32], clothRows: [16, 32] } }
+		},
+		width: 1,
+		height: 1,
+		output: { type: "block", code: "actailor:wovencarpet-small-north" }
+	},
+	{
+		ingredientPattern: "C,C",
+		ingredients: {
+			"C": { type: "item", code: "actailor:wovencloth", quantity: 1 }
+		},
+		width: 1,
+		height: 2,
+		output: { type: "block", code: "actailor:wovencarpet-large-north" }
+	}
+]

@@ -1,0 +1,7 @@
+{
+	"worldconfig-category-actailor": "Arts & Crafts",
+	"worldattribute-actailorClothSize": "Woven cloth size",
+	"worldattribute-actailorClothSize-desc": "Cells of every new loom cloth (square). Double precision weaves finer patterns and costs four times the twine per cloth (4 twine per 256 cells, by colour share). A set warp keeps its size until it is re-warped; cut cloths keep theirs.",
+	"worldconfig-actailorClothSize-standard": "16 x 16 (standard)",
+	"worldconfig-actailorClothSize-double": "32 x 32 (double precision)"
+}

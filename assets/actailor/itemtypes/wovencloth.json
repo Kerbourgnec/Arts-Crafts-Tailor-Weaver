@@ -1,0 +1,68 @@
+// Patterned cloth cut from the loom. The pattern lives in stack attributes (see ItemWovenCloth);
+// the client renders it as the "color" texture of the vanilla cloth shape.
+// Ground storage copies vanilla cloth (sneak + right click a surface); the pile shows the pattern
+// (ItemWovenCloth primes the ground storage mesh cache, see ItemWovenCloth.Placed.cs).
+{
+	code: "wovencloth",
+	class: "actailor.ItemWovenCloth",
+	behaviors: [
+		{ name: "GroundStorable",
+			properties: {
+				layout: 'Stacking',
+				upSolid: true,
+				placeRemoveSound: 'game:sounds/block/leather',
+				stackingModel: 'game:item/resource/cloth-pile',
+				modelItemsToStackSizeRatio: 6,
+				stackingCapacity: 18,
+				transferQuantity: 1,
+				bulkTransferQuantity: 3,
+				collisionBox: { x1: 0, y1: 0, z1: 0, x2: 1, y2: 0.249, z2: 1 },
+				cbScaleYByLayer: 0.22
+			}
+		}
+	],
+	shape: { base: "game:item/resource/cloth" },
+	textures: {
+		color: { base: "game:block/cloth/linen/normal1" },
+		oak: { base: "game:block/wood/oak" }
+	},
+	attributes: {
+		clothingRepairStrength: 0.5,
+		inContainerTexture: { base: "game:block/cloth/linen/normal1" },
+		handbook: {
+			extraSections: [
+				{ title: "actailor:wovencloth-handbook-uses-title", text: "actailor:wovencloth-handbook-uses-text" }
+			]
+		},
+		displaycaseable: true,
+		shelvable: true,
+		displayable: {
+			shelf: { size: { width: 12, height: 3, length: 6 } }
+		},
+		onDisplayTransform: {
+			translation: { x: 0.05, y: 0, z: 0 },
+			rotation: { x: 0, y: -45, z: 0 },
+			origin: { x: 0.5, y: 0, z: 0.5 },
+			scale: 0.8
+		}
+	},
+	creativeinventory: { general: ["*"], items: ["*"] },
+	maxstacksize: 32,
+	materialDensity: 210,
+	guiTransform: {
+		rotation: { x: -166, y: 78, z: -45 },
+		origin: { x: 0.5, y: 0.1, z: 0.58 },
+		scale: 2.5
+	},
+	tpHandTransform: {
+		translation: { x: -1, y: -0.9, z: -1.35 },
+		rotation: { x: 99, y: -180, z: 180 },
+		scale: 0.49
+	},
+	groundTransform: {
+		translation: { x: 0, y: 0.25, z: 0 },
+		rotation: { x: 0, y: 0, z: 0 },
+		origin: { x: 0.5, y: 0.31, z: 0.5299 },
+		scale: 4
+	}
+}

@@ -1,0 +1,50 @@
+// Mirrors game:recipes/barrel/dye/dyedcloth.json, scaled from 1 cloth (2L) to
+// the equivalent 4 twine (cloth = 4 twine). Dye-* needs a mordant base like cloth;
+// woad and tannin work on both plain (game:flaxtwine) and mordanted twine, like cloth.
+[
+	{
+		code: "dyedtwine",
+		sealHours: 8,
+		ingredients: [
+			{ type: "item", code: "game:dye-*", name: "color", litres: 2, consumelitres: 2, allowedVariants: ["orange", "black", "red", "blue", "green", "yellow", "white", "gray", "purple", "pink"] },
+			{ type: "item", code: "twine-mordant", quantity: 4 }
+		],
+		output: { type: "item", code: "twine-{color}", stackSize: 4 }
+	},
+	{
+		code: "dyedtwine",
+		sealHours: 8,
+		ingredients: [
+			{ type: "item", code: "game:strongtanninportion", litres: 2, consumelitres: 2 },
+			{ type: "item", code: "game:flaxtwine", quantity: 4 }
+		],
+		output: { type: "item", code: "twine-brown", stackSize: 4 }
+	},
+	{
+		code: "dyedtwine",
+		sealHours: 8,
+		ingredients: [
+			{ type: "item", code: "game:strongtanninportion", litres: 2, consumelitres: 2 },
+			{ type: "item", code: "twine-mordant", quantity: 4 }
+		],
+		output: { type: "item", code: "twine-brown", stackSize: 4 }
+	},
+	{
+		code: "dyedtwine",
+		sealHours: 8,
+		ingredients: [
+			{ type: "item", code: "game:dye-woad", litres: 2, consumelitres: 2 },
+			{ type: "item", code: "game:flaxtwine", quantity: 4 }
+		],
+		output: { type: "item", code: "twine-blue", stackSize: 4 }
+	},
+	{
+		code: "dyedtwine",
+		sealHours: 8,
+		ingredients: [
+			{ type: "item", code: "game:dye-woad", litres: 2, consumelitres: 2 },
+			{ type: "item", code: "twine-mordant", quantity: 4 }
+		],
+		output: { type: "item", code: "twine-blue", stackSize: 4 }
+	}
+]

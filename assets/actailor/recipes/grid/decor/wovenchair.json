@@ -1,0 +1,14 @@
+// Same as vanilla's chair (recipes/grid/chair.json: 4 planks + 1 cloth), with woven cloth: the cloth's
+// pattern becomes the seat (BlockPatterned.OnCreatedByCrafting).
+[
+	{
+		ingredientPattern: "WLW,W_W",
+		ingredients: {
+			"W": { type: "item", code: "game:plank-*", name: "wood" },
+			"L": { type: "item", code: "actailor:wovencloth", quantity: 1 }
+		},
+		width: 3,
+		height: 2,
+		output: { type: "block", code: "actailor:wovenchair" }
+	}
+]

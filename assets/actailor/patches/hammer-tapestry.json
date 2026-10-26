@@ -1,0 +1,8 @@
+[
+	{
+		"op": "add",
+		"path": "/behaviors/-",
+		"value": { "name": "actailor.HangTapestry" },
+		"file": "game:itemtypes/tool/hammer.json"
+	}
+]

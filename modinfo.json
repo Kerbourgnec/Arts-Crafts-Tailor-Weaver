@@ -1,0 +1,14 @@
+{
+  "type": "code",
+  "modid": "actailor",
+  "name": "Arts & Crafts: Weaver & Tailor",
+  "authors": [
+    "Kerbourgnec"
+  ],
+  "website": "https://github.com/Kerbourgnec/Arts-Crafts-Tailor-Weaver",
+  "description": "Kickstarts the clothing industry: spinning, twine dyeing and pattern weaving on a loom, then sewing, tailoring and embroidery.",
+  "version": "0.1.0-dev.1",
+  "dependencies": {
+    "game": "1.22.7"
+  }
+}

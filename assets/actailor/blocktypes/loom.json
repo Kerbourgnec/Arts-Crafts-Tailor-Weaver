@@ -1,0 +1,88 @@
+// Fly-shuttle loom, woven in-world (see docs/loom.md, docs/weaving.md). Model, textures, cycle animation and
+// sound from Immersive Fibercraft by Carter West / HeadPilgrim (MIT, LICENSES/immersive-fibercraft-MIT.txt),
+// copied into our domain: no dependency on that mod, and our codes/classes differ so both can be installed.
+// 3x2x2 multiblock, block entity at the controller. The weaver's bench (model z ~28) faces the player who
+// placed it: rotation + cposition per side as in the reference blocktype.
+{
+	code: "loom",
+	class: "actailor.BlockLoom",
+	entityClass: "actailor.Loom",
+	entityBehaviors: [
+		{ name: "Animatable" }
+	],
+	variantgroups: [
+		{ code: "wood", states: ["birch", "oak", "maple", "pine", "acacia", "kapok", "baldcypress", "larch", "redwood", "ebony", "walnut", "purpleheart", "aged"] },
+		{ code: "side", loadFromProperties: "abstract/horizontalorientation" }
+	],
+	behaviorsByType: {
+		"*-north": [
+			{ name: "HorizontalOrientable" },
+			{ name: "Multiblock", properties: { sizex: 3, sizey: 2, sizez: 2, cposition: { x: 1, y: 0, z: 0 } } }
+		],
+		"*-east": [
+			{ name: "HorizontalOrientable" },
+			{ name: "Multiblock", properties: { sizex: 2, sizey: 2, sizez: 3, cposition: { x: 1, y: 0, z: 1 } } }
+		],
+		"*-south": [
+			{ name: "HorizontalOrientable" },
+			{ name: "Multiblock", properties: { sizex: 3, sizey: 2, sizez: 2, cposition: { x: 1, y: 0, z: 1 } } }
+		],
+		"*-west": [
+			{ name: "HorizontalOrientable" },
+			{ name: "Multiblock", properties: { sizex: 2, sizey: 2, sizez: 3, cposition: { x: 0, y: 0, z: 1 } } }
+		]
+	},
+	attributesByType: {
+		"*-north": { mapColorCode: "settlement", handbook: { groupBy: ["loom-*-north"] } },
+		"*": { mapColorCode: "settlement", handbook: { exclude: true } }
+	},
+	creativeinventory: { general: ["*-north"], decorative: ["*-north"] },
+	shapeByType: {
+		"*-north": { base: "actailor:block/loom", rotateY: 0 },
+		"*-east": { base: "actailor:block/loom", rotateY: 270 },
+		"*-south": { base: "actailor:block/loom", rotateY: 180 },
+		"*-west": { base: "actailor:block/loom", rotateY: 90 }
+	},
+	drawtype: "json",
+	blockmaterial: "Wood",
+	// "ebony" is the frame wood key of the shape: one debarked wood per variant. "warpnewnewbase" is the plain
+	// leader cloth our mesh draws where no woven row lies; "plain" is the fallback of our cell textures.
+	textures: {
+		plain: { base: "game:block/cloth/linen/plain" },
+		warpstrings: { base: "actailor:block/loom/warpstrings" },
+		reeddents: { base: "actailor:block/loom/reeddents" },
+		heddleties1: { base: "actailor:block/loom/heddleties1" },
+		heddleties2: { base: "actailor:block/loom/heddleties2" },
+		warpnewnewbase: { base: "actailor:block/loom/warpnewnewbase" },
+		loomstring32: { base: "actailor:block/loom/loomstring32" },
+		rope: { base: "game:item/resource/rope" },
+		ebony: { base: "game:block/wood/debarked/{wood}" },
+		oak1: { base: "game:block/wood/planks/oak1" }
+	},
+	sidesolid: { all: false },
+	sideopaque: { all: false },
+	emitSideAo: { all: false },
+	lightAbsorption: 0,
+	replaceable: 600,
+	resistance: 1.5,
+	maxStackSize: 1,
+	materialDensity: 600,
+	sounds: {
+		place: "game:block/planks",
+		break: "game:block/planks",
+		hit: "game:block/planks",
+		walk: "game:walk/wood"
+	},
+	heldTpIdleAnimation: "holdbothhandslarge",
+	heldRightReadyAnimation: "heldblockready",
+	heldTpUseAnimation: "twohandplaceblock",
+	guiTransform: {
+		translation: { x: 4.6, y: 8, z: 0 },
+		scale: 0.52
+	},
+	tpHandTransform: {
+		translation: { x: -2.1, y: -3.4, z: -1.5 },
+		rotation: { x: 98, y: -15, z: -77 },
+		scale: 0.25
+	}
+}

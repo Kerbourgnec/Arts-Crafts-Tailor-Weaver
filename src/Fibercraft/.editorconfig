@@ -1,0 +1,15 @@
+# Ported upstream code (Immersive Fibercraft) is kept as close to upstream as possible:
+# silence its nullable/unused-field warnings here instead of editing the files.
+[*.cs]
+dotnet_diagnostic.CS0414.severity = none
+dotnet_diagnostic.CS0169.severity = none
+dotnet_diagnostic.CS0649.severity = none
+dotnet_diagnostic.CS8600.severity = none
+dotnet_diagnostic.CS8601.severity = none
+dotnet_diagnostic.CS8602.severity = none
+dotnet_diagnostic.CS8603.severity = none
+dotnet_diagnostic.CS8604.severity = none
+dotnet_diagnostic.CS8618.severity = none
+dotnet_diagnostic.CS8625.severity = none
+dotnet_diagnostic.CS8632.severity = none
+dotnet_diagnostic.CS8669.severity = none
