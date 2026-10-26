@@ -1,0 +1,440 @@
+{
+  "version": 3,
+  "file": "actailor-fibercraft.json",
+  "settings": {
+    "boolean": {
+      "REQUIRE_CLASS_OR_TRAIT": {
+        "name": "RequireClassOrTrait",
+        "ingui": "actailor:RequireClassOrTrait",
+        "weight": 0.91,
+        "comment": "actailor:RequireClassOrTrait-Comment",
+        "default": false
+      },
+      "TWINE_GRID_RECIPE_TOGGLE": {
+        "name": "DisableTwineGridRecipes",
+        "ingui": "actailor:setting-twine-grid-recipe-toggle",
+        "weight": 0.92,
+        "comment": "actailor:setting-twine-grid-recipe-toggle-comment",
+        "default": true
+      },
+      "SHOW_DROP_SPINDLE_PROGRESS": {
+        "name": "ShowDropSpindleProgressMessages",
+        "ingui": "actailor:setting-show-dropspindle-progress",
+        "weight": 0.93,
+        "comment": "actailor:setting-show-dropspindle-progress-comment",
+        "default": false
+      }
+    },
+    "float": {
+      "FLAX_SPIN_TIME": {
+        "name": "FlaxSpinTime",
+        "ingui": "actailor:setting-flax-spin-time",
+        "weight": 1.51,
+        "comment": "actailor:setting-flax-spin-time-comment",
+        "default": 4.0,
+        "range": {
+          "min": 1.0,
+          "max": 30.0
+        }
+      },
+      "COTTON_SPIN_TIME": {
+        "name": "CottonSpinTime",
+        "ingui": "actailor:setting-cotton-spin-time",
+        "weight": 2.01,
+        "comment": "actailor:setting-cotton-spin-time-comment",
+        "default": 4.0,
+        "range": {
+          "min": 1.0,
+          "max": 30.0
+        }
+      },
+      "WOOL_FIBER_SPIN_TIME": {
+        "name": "WoolFiberSpinTime",
+        "ingui": "actailor:setting-wool-fiber-spin-time",
+        "weight": 2.51,
+        "comment": "actailor:setting-wool-fiber-spin-time-comment",
+        "default": 4.0,
+        "range": {
+          "min": 1.0,
+          "max": 30.0
+        }
+      },
+      "WOOL_TWINE_SPIN_TIME": {
+        "name": "WoolTwineSpinTime",
+        "ingui": "actailor:setting-wool-twine-spin-time",
+        "weight": 2.58,
+        "comment": "actailor:setting-wool-twine-spin-time-comment",
+        "default": 4.0,
+        "range": {
+          "min": 1.0,
+          "max": 30.0
+        }
+      },
+      "PAPYRUS_SPIN_TIME": {
+        "name": "PapyrusSpinTime",
+        "ingui": "actailor:setting-papyrus-spin-time",
+        "weight": 3.03,
+        "comment": "actailor:setting-papyrus-spin-time-comment",
+        "default": 4.0,
+        "range": {
+          "min": 1.0,
+          "max": 30.0
+        }
+      },
+      "ALGAE_SPIN_TIME": {
+        "name": "AlgaeSpinTime",
+        "ingui": "actailor:setting-algae-spin-time",
+        "weight": 3.06,
+        "comment": "actailor:setting-algae-spin-time-comment",
+        "default": 6.5,
+        "range": {
+          "min": 1.0,
+          "max": 30.0
+        }
+      },
+      "SHIFTING_FIBERS_SPIN_TIME": {
+        "name": "ShiftingFibersSpinTime",
+        "ingui": "actailor:setting-shiftingfibers-spin-time",
+        "weight": 4.01,
+        "comment": "actailor:setting-shiftingfibers-spin-time-comment",
+        "default": 4.0,
+        "range": {
+          "min": 1.0,
+          "max": 30.0
+        }
+      },
+      "STALK_SPIN_TIME": {
+        "name": "StalkSpinTime",
+        "ingui": "actailor:setting-stalk-spin-time",
+        "weight": 5.01,
+        "comment": "actailor:setting-stalk-spin-time-comment",
+        "default": 4.0,
+        "range": {
+          "min": 1.0,
+          "max": 30.0
+        }
+      }
+    },
+    "integer": {
+      "FLAX_INPUT_QUANTITY": {
+        "name": "FlaxInputQuantity",
+        "ingui": "actailor:setting-flax-input-quantity",
+        "weight": 1.52,
+        "comment": "actailor:setting-flax-input-quantity-comment",
+        "default": 2,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "FLAX_OUTPUT_QUANTITY": {
+        "name": "FlaxOutputQuantity",
+        "ingui": "actailor:setting-flax-output-quantity",
+        "weight": 1.53,
+        "comment": "actailor:setting-flax-output-quantity-comment",
+        "default": 1,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "FLAX_TWINE_WEAVE_INPUT_QUANTITY": {
+        "name": "FlaxTwineWeaveInputQuantity",
+        "ingui": "actailor:setting-flax-weaving-input-quantity",
+        "weight": 1.61,
+        "comment": "actailor:setting-flax-weaving-input-quantity-comment",
+        "default": 9,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "FLAX_TWINE_WEAVE_OUTPUT_QUANTITY": {
+        "name": "FlaxTwineWeaveOutputQuantity",
+        "ingui": "actailor:setting-flax-weaving-output-quantity",
+        "weight": 1.62,
+        "comment": "actailor:setting-flax-weaving-output-quantity-comment",
+        "default": 3,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "COTTON_INPUT_QUANTITY": {
+        "name": "CottonInputQuantity",
+        "ingui": "actailor:setting-cotton-input-quantity",
+        "weight": 2.02,
+        "comment": "actailor:setting-cotton-input-quantity-comment",
+        "default": 2,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "COTTON_OUTPUT_QUANTITY": {
+        "name": "CottonOutputQuantity",
+        "ingui": "actailor:setting-cotton-output-quantity",
+        "weight": 2.03,
+        "comment": "actailor:setting-cotton-output-quantity-comment",
+        "default": 1,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "WOOL_FIBER_INPUT_QUANTITY": {
+        "name": "WoolFiberInputQuantity",
+        "ingui": "actailor:setting-wool-fiber-input-quantity",
+        "weight": 2.52,
+        "comment": "actailor:setting-wool-fiber-input-quantity-comment",
+        "default": 2,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "WOOL_FIBER_OUTPUT_QUANTITY": {
+        "name": "WoolFiberOutputQuantity",
+        "ingui": "actailor:setting-wool-fiber-output-quantity",
+        "weight": 2.53,
+        "comment": "actailor:setting-wool-fiber-output-quantity-comment",
+        "default": 1,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "WOOL_TWINE_INPUT_QUANTITY": {
+        "name": "WoolTwineInputQuantity",
+        "ingui": "actailor:setting-wool-twine-input-quantity",
+        "weight": 2.59,
+        "comment": "actailor:setting-wool-twine-input-quantity-comment",
+        "default": 2,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "WOOL_TWINE_OUTPUT_QUANTITY": {
+        "name": "WoolTwineOutputQuantity",
+        "ingui": "actailor:setting-wool-twine-output-quantity",
+        "weight": 2.60,
+        "comment": "actailor:setting-wool-twine-output-quantity-comment",
+        "default": 2,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "WOOL_TWINE_WEAVE_INPUT_QUANTITY": {
+        "name": "WoolTwineWeaveInputQuantity",
+        "ingui": "actailor:setting-wool-twine-weave-input",
+        "weight": 2.61,
+        "comment": "actailor:setting-wool-twine-weave-input-comment",
+        "default": 2,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "WOOL_TWINE_WEAVE_OUTPUT_QUANTITY": {
+        "name": "WoolTwineWeaveOutputQuantity",
+        "ingui": "actailor:setting-wool-twine-weave-output",
+        "weight": 2.62,
+        "comment": "actailor:setting-wool-twine-weave-output-comment",
+        "default": 2,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "THREAD_WEAVE_INPUT_QUANTITY": {
+        "name": "TailorsDelightThreadWeaveInputQuantity",
+        "ingui": "actailor:setting-tailorsdelight-thread-weave-input",
+        "weight": 2.71,
+        "comment": "actailor:setting-tailorsdelight-thread-weave-input-comment",
+        "default": 9,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "THREAD_WEAVE_OUTPUT_QUANTITY": {
+        "name": "TailorsDelightThreadWeaveOutputQuantity",
+        "ingui": "actailor:setting-tailorsdelight-thread-weave-output",
+        "weight": 2.72,
+        "comment": "actailor:setting-tailorsdelight-thread-weave-output-comment",
+        "default": 3,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "PAPYRUS_INPUT_QUANTITY": {
+        "name": "PapyrusInputQuantity",
+        "ingui": "actailor:setting-papyrus-input-quantity",
+        "weight": 3.01,
+        "comment": "actailor:setting-papyrus-input-quantity-comment",
+        "default": 2,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "PAPYRUS_OUTPUT_QUANTITY": {
+        "name": "PapyrusOutputQuantity",
+        "ingui": "actailor:setting-papyrus-output-quantity",
+        "weight": 3.02,
+        "comment": "actailor:setting-papyrus-output-quantity-comment",
+        "default": 1,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "ALGAE_INPUT_QUANTITY": {
+        "name": "AlgaeInputQuantity",
+        "ingui": "actailor:setting-algae-input-quantity",
+        "weight": 3.04,
+        "comment": "actailor:setting-algae-input-quantity-comment",
+        "default": 1,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "ALGAE_OUTPUT_QUANTITY": {
+        "name": "AlgaeOutputQuantity",
+        "ingui": "actailor:setting-algae-output-quantity",
+        "weight": 3.05,
+        "comment": "actailor:setting-algae-output-quantity-comment",
+        "default": 1,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "SHIFTING_FIBERS_INPUT_QUANTITY": {
+        "name": "ShiftingFibersInputQuantity",
+        "ingui": "actailor:setting-shiftingfibers-input-quantity",
+        "weight": 4.02,
+        "comment": "actailor:setting-shiftingfibers-input-quantity-comment",
+        "default": 6,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "SHIFTING_FIBERS_OUTPUT_QUANTITY": {
+        "name": "ShiftingFibersOutputQuantity",
+        "ingui": "actailor:setting-shiftingfibers-output-quantity",
+        "weight": 4.03,
+        "comment": "actailor:setting-shiftingfibers-output-quantity-comment",
+        "default": 1,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "SHIFTING_FIBERS_WEAVE_INPUT_QUANTITY": {
+        "name": "ShiftingFibersWeaveInputQuantity",
+        "ingui": "actailor:setting-shiftingfibers-weave-input",
+        "weight": 4.11,
+        "comment": "actailor:setting-shiftingfibers-weave-input-comment",
+        "default": 23,
+        "range": {
+          "min": 1,
+          "max": 64
+        }
+      },
+      "SHIFTING_FIBERS_WEAVE_OUTPUT_QUANTITY": {
+        "name": "ShiftingFibersWeaveOutputQuantity",
+        "ingui": "actailor:setting-shiftingfibers-weave-output",
+        "weight": 4.12,
+        "comment": "actailor:setting-shiftingfibers-weave-output-comment",
+        "default": 3,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "STALK_INPUT_QUANTITY": {
+        "name": "StalkInputQuantity",
+        "ingui": "actailor:setting-stalk-input-quantity",
+        "weight": 5.02,
+        "comment": "actailor:setting-stalk-input-quantity-comment",
+        "default": 1,
+        "range": {
+          "min": 1,
+          "max": 20
+        }
+      },
+      "STALK_OUTPUT_QUANTITY": {
+        "name": "StalkOutputQuantity",
+        "ingui": "actailor:setting-stalk-output-quantity",
+        "weight": 5.03,
+        "comment": "actailor:setting-stalk-output-quantity-comment",
+        "default": 2,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      },
+      "HEMPFIBERS_WEAVE_INPUT_QUANTITY": {
+        "name": "HempfibersWeaveInputQuantity",
+        "ingui": "actailor:setting-hempfibers-weave-input",
+        "weight": 5.11,
+        "comment": "actailor:setting-hempfibers-weave-input-comment",
+        "default": 24,
+        "range": {
+          "min": 1,
+          "max": 64
+        }
+      },
+      "HEMPFIBERS_WEAVE_OUTPUT_QUANTITY": {
+        "name": "HempfibersWeaveOutputQuantity",
+        "ingui": "actailor:setting-hempfibers-weave-output",
+        "weight": 5.12,
+        "comment": "actailor:setting-hempfibers-weave-output-comment",
+        "default": 3,
+        "range": {
+          "min": 1,
+          "max": 10
+        }
+      }
+    },
+    "stringarray": {
+      "ALLOWED_CLASSES": {
+        "name": "AllowedClasses",
+        "ingui": "actailor:setting-allowed-classes",
+        "weight": 0.92,
+        "comment": "actailor:setting-allowed-classes-comment",
+        "default": [
+          "tailor"
+        ]
+      },
+      "ALLOWED_TRAITS": {
+        "name": "AllowedTraits",
+        "ingui": "actailor:setting-allowed-traits",
+        "weight": 0.93,
+        "comment": "actailor:setting-allowed-traits-comment",
+        "default": [
+          "clothier"
+        ]
+      }
+    }
+  },
+  "formatting": [
+    { "type": "title",       "value": "actailor:config-title",       "weight": 0.1 },
+    { "type": "separator",   "weight": 0.5 },
+    { "type": "separator",   "title": "actailor:section-tailor",     "weight": 0.9 },
+    { "type": "separator",   "title": "actailor:section-flax-spinning",       "weight": 1.5 },
+    { "type": "separator",   "title": "actailor:section-flax-weaving",       "weight": 1.6 },
+    { "type": "separator",   "title": "actailor:section-cotton",     "weight": 2.0 },
+    { "type": "separator",   "title": "actailor:section-wool",       "weight": 2.5 },
+    { "type": "separator",   "title": "actailor:section-tailorsdelight",       "weight": 2.7 },
+    { "type": "separator",   "title": "actailor:section-pemmican",   "weight": 3.0 },
+    { "type": "separator",   "title": "actailor:section-rustboundmagic",   "weight": 4.0 },
+    { "type": "separator",   "title": "actailor:section-ruderalis",   "weight": 5.0 }
+  ]
+}

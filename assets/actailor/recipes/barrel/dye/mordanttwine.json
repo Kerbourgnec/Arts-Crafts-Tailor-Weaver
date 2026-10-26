@@ -1,0 +1,31 @@
+// Mirrors game:recipes/barrel/dye/mordantcloth.json, scaled from 1 cloth (2L) to
+// the equivalent 4 twine (cloth = 4 twine, see README.md "Twine > Cloth").
+[
+	{
+		code: "mordanttwine",
+		sealHours: 8,
+		ingredients: [
+			{ type: "item", code: "game:dilutedalumportion", litres: 2, consumelitres: 2 },
+			{ type: "item", code: "game:flaxtwine", quantity: 4 }
+		],
+		output: { type: "item", code: "twine-mordant", stackSize: 4 }
+	},
+	{
+		code: "mordanttwine",
+		sealHours: 8,
+		ingredients: [
+			{ type: "item", code: "game:dilutedcassiteriteportion", litres: 2, consumelitres: 2 },
+			{ type: "item", code: "game:flaxtwine", quantity: 4 }
+		],
+		output: { type: "item", code: "twine-mordant", stackSize: 4 }
+	},
+	{
+		code: "mordanttwine",
+		sealHours: 8,
+		ingredients: [
+			{ type: "item", code: "game:dilutedchromiteportion", litres: 2, consumelitres: 2 },
+			{ type: "item", code: "game:flaxtwine", quantity: 4 }
+		],
+		output: { type: "item", code: "twine-mordant", stackSize: 4 }
+	}
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "op": "addmerge",
+    "path": "/attributes/handbook",
+    "value": {
+      "extraSections": [
+        {
+          "title": "actailor:handbook-see-also-weaving",
+          "text": "actailor:handbook-see-also-weaving-text"
+        }
+      ]
+    },
+    "file": "game:itemtypes/resource/cloth.json"
+  }
+]

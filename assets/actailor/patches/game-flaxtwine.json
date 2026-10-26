@@ -1,0 +1,25 @@
+[
+  {
+    "op": "add",
+    "path": "/attributes/weavingProps",
+    "value": {
+      "outputType": "game:linen-normal-down",
+      "inputQuantity": 9,
+      "outputQuantity": 3
+    },
+    "file": "game:itemtypes/resource/flaxtwine.json"
+  },
+  {
+    "op": "add",
+    "path": "/attributes/handbook",
+    "value": {
+      "extraSections": [
+        {
+          "title": "actailor:handbook-see-also-twine",
+          "text": "actailor:handbook-see-also-twine-text"
+        }
+      ]
+    },
+    "file": "game:itemtypes/resource/flaxtwine.json"
+  }
+]

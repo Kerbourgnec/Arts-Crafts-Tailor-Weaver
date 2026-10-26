@@ -1,0 +1,20 @@
+{
+	"textureWidth": 16,
+	"textureHeight": 16,
+	"textures": {},
+	"elements": [
+		{
+			"name": "panel",
+			"from": [ 0, 0, 0.1 ],
+			"to": [ 16, 16, 0.6 ],
+			"faces": {
+				"north": { "texture": "#pattern", "uv": [ 0, 0, 16, 16 ], "enabled": false },
+				"east": { "texture": "#pattern", "uv": [ 0, 0, 0.5, 16 ] },
+				"south": { "texture": "#pattern", "uv": [ 0, 0, 16, 16 ], "rotation": 180 },
+				"west": { "texture": "#pattern", "uv": [ 15.5, 0, 16, 16 ] },
+				"up": { "texture": "#pattern", "uv": [ 0, 0, 16, 0.5 ] },
+				"down": { "texture": "#pattern", "uv": [ 0, 15.5, 16, 16 ] }
+			}
+		}
+	]
+}

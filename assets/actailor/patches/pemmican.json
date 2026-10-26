@@ -1,0 +1,54 @@
+[
+  {
+    "op": "add",
+    "path": "/attributes/spinningProps",
+    "value": {
+      "outputType": "game:flaxtwine",
+      "outputQuantity": 1,
+      "inputQuantity": 2,
+      "spinTime": 4
+    },
+    "file": "pemmican:itemtypes/papyrus-fiber.json",
+    "dependsOn": [ { "modid": "longtermfood" } ]
+  },
+  {
+    "op": "add",
+    "path": "/attributes/handbook",
+    "value": {
+      "extraSections": [
+        {
+          "title": "actailor:handbook-see-also-spinning",
+          "text": "actailor:handbook-see-also-spinning-text"
+        }
+      ]
+    },
+    "file": "pemmican:itemtypes/papyrus-fiber.json",
+    "dependsOn": [ { "modid": "longtermfood" } ]
+  },
+  {
+    "op": "add",
+    "path": "/attributes/spinningProps",
+    "value": {
+      "outputType": "game:flaxtwine",
+      "outputQuantity": 2,
+      "inputQuantity": 2,
+      "spinTime": 6
+    },
+    "file": "pemmican:itemtypes/algae-chem.json",
+    "dependsOn": [ { "modid": "longtermfood" } ]
+  },
+  {
+    "op": "add",
+    "path": "/attributes/handbook",
+    "value": {
+      "extraSections": [
+        {
+          "title": "actailor:handbook-see-also-spinning",
+          "text": "actailor:handbook-see-also-spinning-text"
+        }
+      ]
+    },
+    "file": "pemmican:itemtypes/algae-chem.json",
+    "dependsOn": [ { "modid": "longtermfood" } ]
+  }
+]

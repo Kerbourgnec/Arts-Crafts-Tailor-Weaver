@@ -1,0 +1,9 @@
+// Loom brush size (F tool modes) on vanilla flax twine, like on our dyed twines (src/Loom/CollectibleBehaviorLoomBrush.cs).
+[
+	{
+		"op": "add",
+		"path": "/behaviors/-",
+		"value": { "name": "actailor.LoomBrush" },
+		"file": "game:itemtypes/resource/flaxtwine.json"
+	}
+]

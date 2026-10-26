@@ -1,0 +1,75 @@
+// Hand loom (lane/hand-loom, docs/hand-loom.md): a low horizontal ground loom in one block (lane/loom-feedback-8; was
+// 2 wide x 1 tall x 3 deep, multiblock). Warp per
+// thread, heddle rods lifted by hand (crude 2, plank 3), a pick-up stick for single ends, 2 stick shuttles, beat with
+// the sword at the cloth beam. Crude (sticks, logs, stakes) or plank (13 woods, as the Artisan loom). Pre-copper; no
+// recipe yet (creative inventory only). Shapes: scripts/hand-loom-shapes.py.
+// The weaver side (+z of the shape) faces the player who placed it.
+{
+	code: "handloom",
+	class: "actailor.BlockHandLoom",
+	entityClass: "actailor.HandLoom",
+	variantgroups: [
+		{ code: "type", states: ["crude", "birch", "oak", "maple", "pine", "acacia", "kapok", "baldcypress", "larch", "redwood", "ebony", "walnut", "purpleheart", "aged"] },
+		{ code: "side", loadFromProperties: "abstract/horizontalorientation" }
+	],
+	behaviors: [
+		{ name: "HorizontalOrientable" }
+	],
+	attributesByType: {
+		"*-north": { mapColorCode: "settlement", handbook: { groupBy: ["handloom-*-north"] } },
+		"*": { mapColorCode: "settlement", handbook: { exclude: true } }
+	},
+	creativeinventory: { general: ["*-north"], decorative: ["*-north"] },
+	shapeByType: {
+		"handloom-crude-north": { base: "actailor:block/handloom/crude", rotateY: 0 },
+		"handloom-crude-east": { base: "actailor:block/handloom/crude", rotateY: 270 },
+		"handloom-crude-south": { base: "actailor:block/handloom/crude", rotateY: 180 },
+		"handloom-crude-west": { base: "actailor:block/handloom/crude", rotateY: 90 },
+		"*-north": { base: "actailor:block/handloom/plank", rotateY: 0 },
+		"*-east": { base: "actailor:block/handloom/plank", rotateY: 270 },
+		"*-south": { base: "actailor:block/handloom/plank", rotateY: 180 },
+		"*-west": { base: "actailor:block/handloom/plank", rotateY: 90 }
+	},
+	texturesByType: {
+		"handloom-crude-*": {
+			bark: { base: "game:block/wood/bark/oak" },
+			stick: { base: "game:block/wood/debarked/oak" },
+			lash: { base: "game:block/linen" },
+			rod: { base: "game:block/wood/debarked/oak" }
+		},
+		"*": {
+			plank: { base: "game:block/wood/planks/{type}1" },
+			wood: { base: "game:block/wood/debarked/{type}" },
+			rod: { base: "game:block/wood/debarked/{type}" }
+		}
+	},
+	drawtype: "json",
+	blockmaterial: "Wood",
+	sidesolid: { all: false },
+	sideopaque: { all: false },
+	emitSideAo: { all: false },
+	lightAbsorption: 0,
+	replaceable: 600,
+	resistance: 1.2,
+	maxStackSize: 1,
+	materialDensity: 600,
+	sounds: {
+		place: "game:block/planks",
+		break: "game:block/planks",
+		hit: "game:block/planks",
+		walk: "game:walk/wood"
+	},
+	heldTpIdleAnimation: "holdbothhandslarge",
+	heldRightReadyAnimation: "heldblockready",
+	heldTpUseAnimation: "twohandplaceblock",
+	guiTransform: {
+		rotation: { x: -30, y: 45, z: 0 },
+		origin: { x: 0.5, y: 0.2, z: 0.5 },
+		scale: 1.4
+	},
+	tpHandTransform: {
+		translation: { x: -1, y: -0.6, z: -0.6 },
+		rotation: { x: 0, y: 0, z: -20 },
+		scale: 0.7
+	}
+}

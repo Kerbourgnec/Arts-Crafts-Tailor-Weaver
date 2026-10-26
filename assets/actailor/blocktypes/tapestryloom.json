@@ -1,0 +1,86 @@
+// Tapestry loom (lane/tapestry-loom, docs/tapestry-loom.md): an upright two-beam frame, 2 wide x 2 tall x 1 deep.
+// Paint the cloth cell by cell, row by row from the bottom up. Crude (sticks, logs, twine lashings) or plank (13 woods,
+// as the Artisan loom). Pre-copper; no recipe yet (creative inventory only). Shapes: scripts/tapestry-loom-shapes.py.
+// The weaver side (+z of the shape) faces the player who placed it; the frame extends to the placer's right.
+{
+	code: "tapestryloom",
+	class: "actailor.BlockTapestryLoom",
+	entityClass: "actailor.TapestryLoom",
+	variantgroups: [
+		{ code: "type", states: ["crude", "birch", "oak", "maple", "pine", "acacia", "kapok", "baldcypress", "larch", "redwood", "ebony", "walnut", "purpleheart", "aged"] },
+		{ code: "side", loadFromProperties: "abstract/horizontalorientation" }
+	],
+	behaviorsByType: {
+		"*-north": [
+			{ name: "HorizontalOrientable" },
+			{ name: "Multiblock", properties: { sizex: 2, sizey: 2, sizez: 1, cposition: { x: 0, y: 0, z: 0 } } }
+		],
+		"*-east": [
+			{ name: "HorizontalOrientable" },
+			{ name: "Multiblock", properties: { sizex: 1, sizey: 2, sizez: 2, cposition: { x: 0, y: 0, z: 0 } } }
+		],
+		"*-south": [
+			{ name: "HorizontalOrientable" },
+			{ name: "Multiblock", properties: { sizex: 2, sizey: 2, sizez: 1, cposition: { x: 1, y: 0, z: 0 } } }
+		],
+		"*-west": [
+			{ name: "HorizontalOrientable" },
+			{ name: "Multiblock", properties: { sizex: 1, sizey: 2, sizez: 2, cposition: { x: 0, y: 0, z: 1 } } }
+		]
+	},
+	attributesByType: {
+		"*-north": { mapColorCode: "settlement", handbook: { groupBy: ["tapestryloom-*-north"] } },
+		"*": { mapColorCode: "settlement", handbook: { exclude: true } }
+	},
+	creativeinventory: { general: ["*-north"], decorative: ["*-north"] },
+	shapeByType: {
+		"tapestryloom-crude-north": { base: "actailor:block/tapestryloom/crude", rotateY: 0 },
+		"tapestryloom-crude-east": { base: "actailor:block/tapestryloom/crude", rotateY: 270 },
+		"tapestryloom-crude-south": { base: "actailor:block/tapestryloom/crude", rotateY: 180 },
+		"tapestryloom-crude-west": { base: "actailor:block/tapestryloom/crude", rotateY: 90 },
+		"*-north": { base: "actailor:block/tapestryloom/plank", rotateY: 0 },
+		"*-east": { base: "actailor:block/tapestryloom/plank", rotateY: 270 },
+		"*-south": { base: "actailor:block/tapestryloom/plank", rotateY: 180 },
+		"*-west": { base: "actailor:block/tapestryloom/plank", rotateY: 90 }
+	},
+	texturesByType: {
+		"tapestryloom-crude-*": {
+			bark: { base: "game:block/wood/bark/oak" },
+			stick: { base: "game:block/wood/debarked/oak" },
+			lash: { base: "game:block/linen" }
+		},
+		"*": {
+			plank: { base: "game:block/wood/planks/{type}1" },
+			wood: { base: "game:block/wood/debarked/{type}" }
+		}
+	},
+	drawtype: "json",
+	blockmaterial: "Wood",
+	sidesolid: { all: false },
+	sideopaque: { all: false },
+	emitSideAo: { all: false },
+	lightAbsorption: 0,
+	replaceable: 600,
+	resistance: 1.2,
+	maxStackSize: 1,
+	materialDensity: 600,
+	sounds: {
+		place: "game:block/planks",
+		break: "game:block/planks",
+		hit: "game:block/planks",
+		walk: "game:walk/wood"
+	},
+	heldTpIdleAnimation: "holdbothhandslarge",
+	heldRightReadyAnimation: "heldblockready",
+	heldTpUseAnimation: "twohandplaceblock",
+	guiTransform: {
+		translation: { x: 2, y: 2, z: 0 },
+		origin: { x: 1, y: 1, z: 0.5 },
+		scale: 0.8
+	},
+	tpHandTransform: {
+		translation: { x: -1.5, y: -1.6, z: -1.2 },
+		rotation: { x: 0, y: 0, z: -20 },
+		scale: 0.4
+	}
+}

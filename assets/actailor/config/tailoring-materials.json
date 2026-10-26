@@ -1,0 +1,84 @@
+// Material families and the vanilla items in them (MaterialCatalog; both sides). See docs/garments.md "Material families".
+// Like cooking recipe ingredient categories: a garment part lists the families it takes ("cloth", "pelt"...) or a
+// group ("textile" = cloth, leather, pelt; "hard" = wood, metal, bone).
+// Other mods extend this by shipping their own <domain>:config/tailoring-materials.json (same format; their
+// materials are matched before ours, new families are added, a family already defined keeps its first group), or by
+// JSON-patching this file.
+// families: code + group (textile | hard; a mod may add a group). "cloth" is built in: patterned actailor:wovencloth
+// and actailor:wovenlinen are always cloth and not listed (their pattern shows, movable).
+// materials: code = item or block code, wildcards allowed; the FIRST matching entry wins (put specific codes before
+// wildcards). family: one of the families. A filled part consumes 1 item.
+// texture: vanilla texture the part shows (the item's own, from its itemtype); {*} = what the code's * matched
+// (game:plank-* on plank-oak → oak). Server items carry no textures, so they are named here; the smoke errors on a
+// matched item whose texture asset does not exist. Textures tile 1:1 under the part (no scaling), rotation only.
+// crop: [x1, y1, x2, y2] texels of that PNG tiled 1:1 under the part (null = whole texture); species pelts crop the
+// animal's back from the entity texture (scripts/pelt-regions.sh = largest fur face of the vanilla pelt item shape).
+// texels: garment texels one item covers. Unused since lane/garment-system (1 item per part), kept for a later area cost.
+// color: flat stand-in when the texture cannot be loaded.
+{
+	"families": [
+		{ "code": "cloth", "group": "textile" },
+		{ "code": "leather", "group": "textile" },
+		{ "code": "pelt", "group": "textile" },
+		{ "code": "wood", "group": "hard" },
+		{ "code": "metal", "group": "hard" },
+		{ "code": "bone", "group": "hard" }
+	],
+	"materials": [
+		{ "code": "game:leather-normal-plain", "family": "leather", "texture": "game:block/leather/plain", "texels": 1024, "color": "#7a5634" },
+		{ "code": "game:leather-normal-orange", "family": "leather", "texture": "game:block/leather/orange", "texels": 1024, "color": "#a8602a" },
+		{ "code": "game:leather-normal-black", "family": "leather", "texture": "game:block/leather/black", "texels": 1024, "color": "#2a2622" },
+		{ "code": "game:leather-normal-red", "family": "leather", "texture": "game:block/leather/red", "texels": 1024, "color": "#7a2a22" },
+		{ "code": "game:leather-normal-blue", "family": "leather", "texture": "game:block/leather/blue", "texels": 1024, "color": "#2e4466" },
+		{ "code": "game:leather-normal-purple", "family": "leather", "texture": "game:block/leather/purple", "texels": 1024, "color": "#4e2e5a" },
+		{ "code": "game:leather-normal-pink", "family": "leather", "texture": "game:block/leather/pink", "texels": 1024, "color": "#a0646e" },
+		{ "code": "game:leather-normal-white", "family": "leather", "texture": "game:block/leather/white", "texels": 1024, "color": "#c8bca8" },
+		{ "code": "game:leather-normal-yellow", "family": "leather", "texture": "game:block/leather/yellow", "texels": 1024, "color": "#b08a2e" },
+		{ "code": "game:leather-normal-gray", "family": "leather", "texture": "game:block/leather/gray", "texels": 1024, "color": "#5e5a56" },
+		{ "code": "game:leather-normal-green", "family": "leather", "texture": "game:block/leather/green", "texels": 1024, "color": "#3e5230" },
+		{ "code": "game:leather-sturdy-plain", "family": "leather", "texture": "game:block/leather/chromium", "texels": 1024, "color": "#4a3e36" },
+
+		{ "code": "game:hide-pelt-fox-red", "family": "pelt", "texture": "game:entity/animal/mammal/fox/red-male", "crop": [32, 32, 42, 52], "texels": 512, "color": "#b0602a" },
+		{ "code": "game:hide-pelt-fox-arctic", "family": "pelt", "texture": "game:entity/animal/mammal/fox/arctic-male", "crop": [32, 32, 42, 52], "texels": 512, "color": "#d8d4cc" },
+		{ "code": "game:hide-pelt-raccoon-common", "family": "pelt", "texture": "game:entity/animal/mammal/raccoon/common-male1", "crop": [29, 35, 41, 55], "texels": 512, "color": "#7e746c" },
+
+		{ "code": "game:hide-pelt-bear-black-head", "family": "pelt", "texture": "game:entity/animal/mammal/bear/black-adult1", "crop": [10, 79, 66, 107], "texels": 512, "color": "#24201e" },
+		{ "code": "game:hide-pelt-bear-black-*", "family": "pelt", "texture": "game:entity/animal/mammal/bear/black-adult1", "crop": [10, 79, 66, 107], "texels": 1536, "color": "#24201e" },
+		{ "code": "game:hide-pelt-bear-brown-head", "family": "pelt", "texture": "game:entity/animal/mammal/bear/brown-adult1", "crop": [20, 132, 80, 162], "texels": 512, "color": "#4a3624" },
+		{ "code": "game:hide-pelt-bear-brown-*", "family": "pelt", "texture": "game:entity/animal/mammal/bear/brown-adult1", "crop": [20, 132, 80, 162], "texels": 2048, "color": "#4a3624" },
+		{ "code": "game:hide-pelt-bear-panda-head", "family": "pelt", "texture": "game:entity/animal/mammal/bear/panda-adult1", "crop": [13, 82, 65, 108], "texels": 512, "color": "#d0d0cc" },
+		{ "code": "game:hide-pelt-bear-panda-*", "family": "pelt", "texture": "game:entity/animal/mammal/bear/panda-adult1", "crop": [13, 82, 65, 108], "texels": 1536, "color": "#d0d0cc" },
+		{ "code": "game:hide-pelt-bear-polar-head", "family": "pelt", "texture": "game:entity/animal/mammal/bear/polar-adult1", "crop": [20, 132, 80, 162], "texels": 512, "color": "#e0dcd2" },
+		{ "code": "game:hide-pelt-bear-polar-*", "family": "pelt", "texture": "game:entity/animal/mammal/bear/polar-adult1", "crop": [20, 132, 80, 162], "texels": 2048, "color": "#e0dcd2" },
+		{ "code": "game:hide-pelt-bear-sun-head", "family": "pelt", "texture": "game:entity/animal/mammal/bear/sun-adult1", "crop": [5, 58, 41, 76], "texels": 512, "color": "#1e1c1a" },
+		{ "code": "game:hide-pelt-bear-sun-*", "family": "pelt", "texture": "game:entity/animal/mammal/bear/sun-adult1", "crop": [5, 58, 41, 76], "texels": 1024, "color": "#1e1c1a" },
+
+		{ "code": "game:hide-pelt-small", "family": "pelt", "texture": "game:item/resource/hide/raw", "texels": 512, "color": "#6e5440" },
+		{ "code": "game:hide-pelt-medium", "family": "pelt", "texture": "game:item/resource/hide/raw", "texels": 1024, "color": "#6e5440" },
+		{ "code": "game:hide-pelt-large", "family": "pelt", "texture": "game:item/resource/hide/raw", "texels": 1536, "color": "#6e5440" },
+		{ "code": "game:hide-pelt-huge", "family": "pelt", "texture": "game:item/resource/hide/raw-huge", "texels": 2048, "color": "#6e5440" },
+
+		// Vanilla dyed linen cloth (lane/garment-system) and vanilla linen blocks (lane/garment-families): family cloth,
+		// but no pattern: their own texture tiles like leather.
+		{ "code": "game:linen-diamond-*", "family": "cloth", "texture": "game:block/cloth/linen/diamond1", "color": "#cfc4a8" },
+		{ "code": "game:linen-normal-*", "family": "cloth", "texture": "game:block/cloth/linen/normal1", "color": "#cfc4a8" },
+		{ "code": "game:linen-offset-*", "family": "cloth", "texture": "game:block/cloth/linen/offset1", "color": "#cfc4a8" },
+		{ "code": "game:linen-square-*", "family": "cloth", "texture": "game:block/cloth/linen/square1", "color": "#cfc4a8" },
+		{ "code": "game:cloth-plain", "family": "cloth", "texture": "game:block/cloth/linen/normal1", "color": "#cfc4a8" },
+		{ "code": "game:cloth-*", "family": "cloth", "texture": "game:block/cloth/linen/{*}", "color": "#cfc4a8" },
+
+		// Hard items (lane/garment-system): buttons, toggles, clasps; the item's own texture tiles over the part.
+		// Bone: the vanilla bone and its variants (texture of each item's shape).
+		{ "code": "game:bone", "family": "bone", "texture": "game:block/creature/bone", "color": "#e0d8c0" },
+		{ "code": "game:bone-tiny", "family": "bone", "texture": "game:block/creature/bonesrotten", "color": "#d8ccb0" },
+		{ "code": "game:bone-fish", "family": "bone", "texture": "game:block/creature/bonehumanoid", "color": "#e0d8c0" },
+		// Wood: sticks and boards (planks).
+		{ "code": "game:stick", "family": "wood", "texture": "game:block/wood/debarked/oak", "color": "#9a7a50" },
+		{ "code": "game:plank-aged", "family": "wood", "texture": "game:block/wood/planks/aged/aged1", "color": "#7a6a50" },
+		{ "code": "game:plank-veryaged", "family": "wood", "texture": "game:block/wood/planks/aged/veryaged1", "color": "#6a5a44" },
+		{ "code": "game:plank-*", "family": "wood", "texture": "game:block/wood/planks/{*}1", "color": "#a07a4a" },
+		// Metal: every metal bit and every nugget (ore nuggets included, owner lane/garment-families).
+		{ "code": "game:metalbit-*", "family": "metal", "texture": "game:block/metal/ingot/{*}", "color": "#b07040" },
+		{ "code": "game:nugget-*", "family": "metal", "texture": "game:item/resource/nugget/{*}", "color": "#c08040" }
+	]
+}

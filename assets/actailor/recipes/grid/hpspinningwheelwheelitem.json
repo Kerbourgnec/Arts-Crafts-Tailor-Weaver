@@ -1,0 +1,19 @@
+{
+  "ingredientPattern": " P ,PSP, P ",
+  "ingredients": {
+    "S": { "type": "item", "code": "game:stick", "quantity": "12" },
+    "P": {
+      "type": "item",
+      "code": "game:plank-*",
+      "name": "wood",
+      "allowedVariants": ["birch", "oak", "maple", "pine", "acacia", "kapok", "baldcypress", "larch", "redwood", "ebony", "walnut", "purpleheart", "aged"]
+    }
+  },
+  "width": 3,
+  "height": 3,
+  "output": {
+    "type": "item",
+    "code": "actailor:hpspinningwheelwheelitem-{wood}",
+    "quantity": 1
+  }
+}

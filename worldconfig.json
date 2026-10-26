@@ -1,0 +1,13 @@
+{
+	"playStyles": [],
+	"worldConfigAttributes": [
+		{
+			"category": "actailor",
+			"code": "actailorClothSize",
+			"dataType": "dropdown",
+			"values": ["16", "32"],
+			"names": ["standard", "double"],
+			"default": "16"
+		}
+	]
+}

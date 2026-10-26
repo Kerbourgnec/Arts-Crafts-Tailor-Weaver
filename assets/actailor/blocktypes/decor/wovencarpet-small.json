@@ -1,0 +1,63 @@
+// Small carpet (1x1, thin and slightly inset like vanilla carpets, lane/linen-output) from one woven cloth of any square
+// size, or woven on the loom as an N x N carpet; shows its pattern (block entity actailor.Patterned).
+// Orientable like the loom (variant = direction the player looked): the pattern reads as on the loom from the
+// weaver's seat (first woven row nearest to the player, cell 0 on their right). Needs solid ground.
+{
+	code: "wovencarpet-small",
+	class: "actailor.BlockPatterned",
+	entityClass: "actailor.Patterned",
+	variantgroups: [
+		{ code: "side", loadFromProperties: "abstract/horizontalorientation" }
+	],
+	behaviors: [{ name: "HorizontalOrientable" }],
+	attributes: {
+		patternKeys: ["pattern"],
+		dropCode: "actailor:wovencarpet-small-north",
+		needsFloor: true,
+		handbook: { groupBy: ["wovencarpet-small-*"] }
+	},
+	shapeByType: {
+		"*-north": { base: "actailor:block/decor/carpet-small", rotateY: 180 },
+		"*-east": { base: "actailor:block/decor/carpet-small", rotateY: 90 },
+		"*-south": { base: "actailor:block/decor/carpet-small", rotateY: 0 },
+		"*-west": { base: "actailor:block/decor/carpet-small", rotateY: 270 }
+	},
+	shapeInventory: { base: "actailor:block/decor/carpet-small", rotateY: 0 },
+	textures: {
+		pattern: { base: "game:block/cloth/linen/normal1" }
+	},
+	creativeinventory: { general: ["*-north"], decorative: ["*-north"] },
+	drawtype: "json",
+	blockmaterial: "Cloth",
+	sidesolid: { all: false },
+	sideopaque: { all: false },
+	emitSideAo: { all: false },
+	lightAbsorption: 0,
+	replaceable: 5200,
+	resistance: 0.5,
+	vertexFlags: { zOffset: 5 },
+	selectionbox: { x1: 0, y1: 0, z1: 0, x2: 1, y2: 0.0625, z2: 1 },
+	collisionbox: { x1: 0, y1: 0, z1: 0, x2: 1, y2: 0.0625, z2: 1 },
+	combustibleProps: { burnTemperature: 400, burnDuration: 10 },
+	sounds: {
+		place: "game:block/cloth",
+		break: "game:block/cloth",
+		hit: "game:block/cloth",
+		walk: "game:walk/cloth"
+	},
+	materialDensity: 200,
+	guiTransform: {
+		translation: { x: 0, y: 3, z: 0 },
+		origin: { x: 0.5, y: 0.0625, z: 0.5 }
+	},
+	groundTransform: {
+		rotation: { x: 0, y: -45, z: 0 },
+		origin: { x: 0.5, y: -0.02, z: 0.5 },
+		scale: 1.5
+	},
+	tpHandTransform: {
+		translation: { x: -1.7, y: 0.1, z: -1.5 },
+		rotation: { x: -46, y: 0, z: -2 },
+		origin: { x: 0.5, y: 0, z: 0.5 }
+	}
+}

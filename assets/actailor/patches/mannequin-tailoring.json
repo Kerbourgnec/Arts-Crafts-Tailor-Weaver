@@ -1,0 +1,12 @@
+// Sewing on the vanilla mannequin: our block entity behaviour goes AFTER the vanilla "Mannequin" one.
+// BlockBehaviorBlockEntityInteract asks the behaviours in order; with a woven cloth in hand the vanilla one
+// declines (not a garment) and ours opens the sewing dialog (PreventSubsequent). Appending also means our
+// FromTreeAttributes sees the mannequin's freshly synced inventory. See docs/tailoring.md.
+[
+	{
+		"op": "add",
+		"path": "/entityBehaviors/-",
+		"value": { "name": "actailor.MannequinTailoring" },
+		"file": "game:blocktypes/wood/mannequin.json"
+	}
+]
