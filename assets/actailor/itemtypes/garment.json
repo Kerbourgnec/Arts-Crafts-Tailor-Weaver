@@ -233,6 +233,12 @@
 		"garment-parka": {
 			"base": "actailor:entity/garment/base/upperbodyover/longsleeve-hood-collar-longsleeve-fur",
 			"ignoreElements": [
+				"UpperFootLOrigin-long",
+				"UpperFootROrigin-long",
+				"LowerFootLOrigin-long",
+				"LowerFootROrigin-long",
+				"CollarOrigin2-fancy",
+				"CollarOrigin2-full",
 				"hidecollar",
 				"CollarOrigin2"
 			]
