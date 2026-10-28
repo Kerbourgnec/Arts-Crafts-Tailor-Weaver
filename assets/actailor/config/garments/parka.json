@@ -2,7 +2,7 @@
 // Parka (lane/garments-4): our anisotropy-free copy (scripts/garment-shapes.py) of the vanilla arctic hunter's parka
 // (upperbodyover/longsleeve-hood + the fur collar overlay collar-longsleeve-fur): coat, long sleeves, thigh-length flaps,
 // hood. The coat's thigh flap faces sample texels shared with other faces in vanilla: our copy moves them below the layout.
-// Texture 56x184 texels = 28x92 shape units (2 texels per unit, like vanilla). Regions: scripts/garment-auto.py --draft.
+// Texture 56x264 texels = 28x132 shape units (2 texels per unit, like vanilla). Regions: scripts/garment-auto.py --draft.
 // Worn over a shirt. Hair elements as vanilla (hood covers the hair).
 {
 	code: "parka",
@@ -12,16 +12,28 @@
 	shape: "actailor:entity/garment/base/upperbodyover/longsleeve-hood-collar-longsleeve-fur",
 	textureKey: "uover",
 	textureWidth: 56,
-	textureHeight: 184,
+	textureHeight: 264,
 	shadingTexture: "actailor:entity/garment/fallback/upperbodyover/longsleeve-hood-collar-longsleeve-fur",
 	parts: [
 		{ code: "body", shade: true, regions: [[12, 1, 24, 6], [12, 6, 16, 7], [20, 6, 24, 7], [12, 7, 15, 10], [21, 7, 24, 10], [12, 10, 16, 11], [20, 10, 24, 11], [2, 11, 17, 12], [19, 11, 46, 12], [2, 12, 46, 31], [12, 31, 24, 41], [34, 31, 46, 41], [14, 41, 22, 42], [36, 41, 44, 42], [0, 63, 12, 73], [38, 63, 50, 73]], materials: ["cloth", "leather"] },
-		{ code: "skirt", shade: true, regions: [[1, 145, 9, 151], [23, 145, 31, 151], [0, 166, 20, 180], [24, 166, 44, 180]], materials: ["cloth", "leather"] },
+		// Modular part (lane/modular-parts): the coat's hem is one of the vanilla long-sleeved coat shapes. thigh = the parka's own flaps
+		// (longsleeve-hood), long = the full-length hem of the long coats (longsleeve-extended: thigh + shin flaps), cropped out of
+		// their own texture into rows 92..122 of ours. long is not shaded: the vanilla hem (peliconburgundy) mixes trim and cloth, and only single-material texels are shaded. One sewing slot, one material; the other option's elements are never shown.
+		{ code: "skirt", shade: true, materials: ["cloth", "leather"], options: [
+			{ code: "thigh", regions: [[1, 145, 9, 151], [23, 145, 31, 151], [0, 166, 20, 180], [24, 166, 44, 180]], elements: ["UpperFootLorigin", "UpperFootRorigin"] },
+			{ code: "long", shade: false, regions: [[3, 185, 11, 191], [25, 185, 33, 191], [2, 206, 22, 230], [26, 206, 46, 230], [47, 225, 53, 233], [47, 235, 53, 243]], elements: ["UpperFootLOrigin-long", "UpperFootROrigin-long", "LowerFootLOrigin-long", "LowerFootROrigin-long"] }
+		] },
 		{ code: "sleeve-right", shade: true, regions: [[20, 67, 24, 73], [14, 68, 18, 74], [4, 74, 24, 88], [4, 88, 8, 101], [9, 88, 23, 101]], materials: ["cloth", "leather"] },
 		{ code: "sleeve-left", shade: true, regions: [[26, 67, 30, 73], [32, 68, 36, 74], [26, 74, 46, 88], [27, 88, 41, 101], [42, 88, 46, 101]], materials: ["cloth", "leather"] },
 		{ code: "hood", shade: true, regions: [[41, 109, 53, 117], [16, 112, 28, 125], [3, 125, 52, 128], [3, 128, 18, 129], [26, 128, 52, 129], [3, 129, 17, 135], [27, 129, 52, 135], [3, 135, 18, 138], [26, 135, 52, 138], [3, 138, 17, 139], [27, 138, 52, 139], [3, 139, 16, 140], [28, 139, 52, 140]], materials: ["cloth", "leather"] },
 		// Fur collar around the neck (vanilla fur collar overlay + the neck cover under it): a pelt, or any textile.
-		{ code: "collar", regions: [[27, 0, 28, 2], [29, 0, 36, 1], [37, 0, 55, 1], [29, 1, 55, 2], [26, 2, 52, 5], [26, 5, 50, 9]], materials: ["pelt", "cloth", "leather"], optional: true, elements: ["hidecollar", "CollarOrigin2"] },
+		// Modular optional part: fur (vanilla fur collar + neck cover), fancy (fancy long-coat collar, five slats) or full (extended coat's
+		// full collar), each cropped out of its own vanilla texture into rows 122..132. Left empty = no collar.
+		{ code: "collar", materials: ["pelt", "cloth", "leather"], optional: true, options: [
+			{ code: "fur", regions: [[27, 0, 28, 2], [29, 0, 36, 1], [37, 0, 55, 1], [29, 1, 55, 2], [26, 2, 52, 5], [26, 5, 50, 9]], elements: ["hidecollar", "CollarOrigin2"] },
+			{ code: "fancy", regions: [[26, 244, 32, 245], [38, 244, 50, 245], [26, 245, 50, 247], [26, 248, 32, 249], [38, 248, 50, 249], [26, 250, 50, 252], [26, 252, 32, 253], [38, 252, 50, 253]], elements: ["CollarOrigin2-fancy"] },
+			{ code: "full", regions: [[26, 254, 32, 263], [33, 254, 45, 263], [46, 254, 52, 263]], elements: ["CollarOrigin2-full"] }
+		] },
 		// Trims painted on the coat parts in vanilla (scripts/garment-trim-masks.py, scripts/garment-segment.py): the dark edging
 		// (placket, hem, cuffs, hood rim) and the red stitching. Layer 1 overlays with a mask: left empty, the part below
 		// shows there; the parts above are shaded only on their own cloth (single material), the trims on their own.

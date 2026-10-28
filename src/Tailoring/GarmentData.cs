@@ -17,6 +17,8 @@ namespace ArtsAndCrafts.Tailor.Tailoring;
 /// The texture is recomposed from this on the client (deterministic), so stacks stay small (~300 bytes per cloth).
 /// lane/mannequin-embroidery: optional tree <c>embroidery</c> (<see cref="Weaving.Embroidery"/> layer of the garment
 /// texture's size; absent = no stitches, so older stacks and their hashes are unchanged).
+/// lane/modular-parts: string[] <c>pieceOption</c> (option code per part, same order as <c>pieceCodes</c>, "" = a plain part);
+/// absent (older stacks, garments without options) = the first option of every part.
 /// </summary>
 public sealed class GarmentData
 {
@@ -28,8 +30,13 @@ public sealed class GarmentData
     public PieceAssignment[] Pieces = System.Array.Empty<PieceAssignment>();
     /// <summary>Stitches on the garment texture (lane/mannequin-embroidery, <see cref="GarmentEmbroidery"/>); null = none.</summary>
     public Weaving.Embroidery? Embroidery;
+    /// <summary>Option index per part (<see cref="GarmentDef.Choice"/>; -1 = plain part); null = the first option everywhere.</summary>
+    public int[]? Choice;
     /// <summary>Body-space wrap (lane/body-wrap): segment placements + sleeves mode; null = UV space (sewn before the lane).</summary>
     public WrapLayout? Wrap;
+
+    /// <summary>The recipe def of this garment's options (the catalog def itself for the first options).</summary>
+    public GarmentDef Resolve(GarmentDef def) => def.Resolve(Choice);
 
     public SlotMaterial? Material(int i) => i >= 0 && i < Materials.Count ? Materials[i] : null;
 
@@ -37,7 +44,7 @@ public sealed class GarmentData
     public SlotMaterial? PartMaterial(int part) => part >= 0 && part < Pieces.Length ? Material(Pieces[part].Cloth) : null;
 
     /// <summary>Shape elements this garment does not show (fixed ones + empty optional parts).</summary>
-    public string[] HiddenElements(GarmentDef def) => def.HiddenElements(p => PartMaterial(p) != null);
+    public string[] HiddenElements(GarmentDef def) => Resolve(def).HiddenElements(p => PartMaterial(p) != null);
 
     public void ToTree(ITreeAttribute tree, GarmentDef def)
     {
@@ -65,6 +72,11 @@ public sealed class GarmentData
         tree["pieceDx"] = new IntArrayAttribute(Pieces.Select(p => p.Dx).ToArray());
         tree["pieceDy"] = new IntArrayAttribute(Pieces.Select(p => p.Dy).ToArray());
         tree["pieceRot"] = new IntArrayAttribute(Pieces.Select(p => p.Rot).ToArray());
+        if (def.HasOptions)
+        {
+            var ch = def.NormalizeChoice(Choice);
+            tree["pieceOption"] = new StringArrayAttribute(def.Parts.Select((p, i) => ch[i] >= 0 ? p.Options[ch[i]].Code : "").ToArray());
+        }
         Weaving.Embroidery.Write(tree, Embroidery); // empty → no tree
         Wrap?.ToTree(tree); // keys wrap, sleeves, segDu, segDv, segRot; absent = UV space
     }
@@ -105,7 +117,18 @@ public sealed class GarmentData
                 ? PieceAssignment.None
                 : new PieceAssignment(cloth[k], dx[k], dy[k], rot[k]);
         }
-        d.Embroidery = Weaving.Embroidery.Read(tree, def.TextureWidth, def.TextureHeight); // other size (recipe changed) → ignored
+        if (def.HasOptions)
+        {
+            string[] optCodes = (tree["pieceOption"] as StringArrayAttribute)?.value ?? System.Array.Empty<string>();
+            d.Choice = def.Parts.Select(p =>
+            {
+                if (p.Options.Length == 0) return -1;
+                int k = System.Array.IndexOf(codes, p.Code);
+                int o = k >= 0 && k < optCodes.Length ? System.Array.FindIndex(p.Options, x => x.Code == optCodes[k]) : -1;
+                return o < 0 ? 0 : o;
+            }).ToArray();
+        }
+        d.Embroidery = Weaving.Embroidery.ReadGrown(tree, def.TextureWidth, def.TextureHeight); // other width / shorter height than stored (recipe changed) → ignored; a taller recipe pads (lane/modular-parts)
         d.Wrap = WrapLayout.FromTree(tree);
         return d;
     }
@@ -168,6 +191,8 @@ public sealed class GarmentData
             foreach (byte b in Embroidery.Cells) Mix(b);
             foreach (string c in Embroidery.Colors) { foreach (char ch in c) Mix(ch); Mix(0xff); }
         }
+        if (Choice != null) // lane/modular-parts: only a non-first option mixes in (garments without options keep their hash)
+            for (int p = 0; p < Choice.Length; p++) if (Choice[p] > 0) { Mix(0xfc); MixInt(p); MixInt(Choice[p]); }
         Wrap?.Mix(MixInt); // body-space garments only: older hashes unchanged
         return h.ToString("x16");
     }

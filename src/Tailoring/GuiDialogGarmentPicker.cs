@@ -32,7 +32,7 @@ public class GuiDialogGarmentPicker : GuiDialog
         slots = DrapeFlow.PickerSlots(MannequinFit.Slots(host.AllowedGarments), meshY);
         chosen = host.Garment?.DressType is { } d && slots.Contains(d) ? d : slots.Length == 1 ? slots[0] : null;
         if (chosen != null && host.Garment != null)
-            page = MannequinFit.PageOf(Array.IndexOf(MannequinFit.ForSlot(host.AllowedGarments, chosen), host.Garment), PerPage);
+            page = MannequinFit.PageOf(Array.IndexOf(MannequinFit.ForSlot(host.AllowedGarments, chosen), host.Garment.Root), PerPage);
     }
 
     static string L(string key, params object[] args) => Lang.Get(TailorModSystem.Domain + ":" + key, args);
@@ -40,7 +40,14 @@ public class GuiDialogGarmentPicker : GuiDialog
     public override void OnGuiOpened()
     {
         base.OnGuiOpened();
+        host.ClientStateChanged += OnStateChanged;
         Compose();
+    }
+
+    public override void OnGuiClosed()
+    {
+        host.ClientStateChanged -= OnStateChanged;
+        base.OnGuiClosed();
     }
 
     void Compose()
@@ -81,14 +88,45 @@ public class GuiDialogGarmentPicker : GuiDialog
             c.AddToggleButton(L("garment-" + code), CairoFont.SmallButtonText(), _ => Pick(code), garmentBounds[i], "garment-" + code);
         }
         y += (chosen == null ? 0 : Math.Max(1, garmentRows)) * RowPitch + 8;
+        // lane/modular-parts: the garment in progress with options: one row of buttons per part with options (packet 1214).
+        optionRows.Clear();
+        if (host.Garment is { } cur)
+        {
+            foreach (int part in cur.ChoosableParts)
+            {
+                var def = cur.Parts[part];
+                string[] names = Enumerable.Range(0, def.Options.Length).Select(k => L(def.OptionName(k))).ToArray();
+                double labelW = 150;
+                c.AddStaticText(L("tailoring-gui-option-of", L("part-" + def.Code)), CairoFont.WhiteSmallText(), ElementBounds.Fixed(0, y + 4, labelW, 18));
+                var (bounds, nrows) = GuiFit.Flow(names, labelW + 6, y, width - labelW - 6, 60, RowPitch);
+                for (int k = 0; k < names.Length; k++)
+                {
+                    int p = part, o = k;
+                    c.AddToggleButton(names[k], CairoFont.SmallButtonText(), _ => { if (host.Garment?.Parts[p].Chosen != o) host.SendSetOption(p, o); else Recompose(); },
+                        bounds[k], $"opt-{part}-{k}");
+                    optionRows.Add((part, k));
+                }
+                y += Math.Max(1, nrows) * RowPitch;
+            }
+            if (optionRows.Count > 0) y += 8;
+        }
         c.AddStaticText(L("tailoring-flow-picker-hint"), CairoFont.WhiteDetailText(), ElementBounds.Fixed(0, y, width, 36));
         y += 40;
         c.AddFitButton(L("tailoring-flow-picker-window"), () => { TryClose(); host.OpenSewingWindow(); return true; }, ElementBounds.Fixed(0, y, 180, 24))
             .AddFitButton(L("tailoring-flow-picker-close"), () => TryClose(), ElementBounds.Fixed(width - 120, y, 120, 24));
         SingleComposer = c.EndChildElements().Compose();
         if (chosen != null) SingleComposer.GetToggleButton("slot-" + chosen)?.SetValue(true);
-        if (host.Garment is { } g) SingleComposer.GetToggleButton("garment-" + g.Code)?.SetValue(true);
+        if (host.Garment is { } g)
+        {
+            SingleComposer.GetToggleButton("garment-" + g.Code)?.SetValue(true);
+            foreach (var (part, k) in optionRows) SingleComposer.GetToggleButton($"opt-{part}-{k}")?.SetValue(g.Parts[part].Chosen == k);
+        }
     }
+
+    readonly System.Collections.Generic.List<(int part, int option)> optionRows = new();
+
+    /// <summary>The garment's choice changed (server sync): redraw the option buttons.</summary>
+    public void OnStateChanged() { if (IsOpened()) Recompose(); }
 
     void Recompose() => capi.Event.EnqueueMainThreadTask(() => { if (IsOpened()) Compose(); }, "actailor-garmentpicker");
 

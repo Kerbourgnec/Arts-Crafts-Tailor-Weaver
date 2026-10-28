@@ -130,6 +130,7 @@ public class ItemTailoredGarment : Item, IAttachableToEntity, IWearableShapeSupp
     /// <summary>Composed texture in <paramref name="atlas"/> under <c>actailor:{prefix}{hash}</c>; null when the atlas refused it.</summary>
     public static AssetLocation? EnsureTexture(ICoreClientAPI capi, ITextureAtlasAPI atlas, string prefix, GarmentDef def, GarmentData data, out TextureAtlasPosition? texPos)
     {
+        def = data.Resolve(def); // lane/modular-parts: the parts of the stack's options (the hash includes them)
         var loc = new AssetLocation(TailorModSystem.Domain, prefix + data.Hash());
         bool ok = atlas.GetOrInsertTexture(loc, out _, out TextureAtlasPosition pos, () => new BakedBitmap
         {
@@ -153,10 +154,12 @@ public class ItemTailoredGarment : Item, IAttachableToEntity, IWearableShapeSupp
             return;
         }
         dsc.AppendLine(Lang.Get(TailorModSystem.Domain + ":garment-cloths", data.Materials.Count));
+        def = data.Resolve(def);
         for (int p = 0; p < def.Parts.Length && p < data.Pieces.Length; p++)
         {
             var a = data.Pieces[p];
             string part = Lang.Get(TailorModSystem.Domain + ":part-" + def.Parts[p].Code);
+            if (def.Parts[p].Chosen >= 0 && def.Parts[p].Options.Length > 1) part += " (" + Lang.Get(TailorModSystem.Domain + ":" + def.Parts[p].OptionName(def.Parts[p].Chosen)) + ")";
             var m = data.Material(a.Cloth);
             if (def.Parts[p].IsFixed)
             {

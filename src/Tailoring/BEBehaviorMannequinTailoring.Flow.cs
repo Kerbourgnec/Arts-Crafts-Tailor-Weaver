@@ -204,6 +204,19 @@ public partial class BEBehaviorMannequinTailoring
         return true;
     }
 
+    /// <summary>
+    /// Picker / dialog: choose a variant of a part (lane/modular-parts). Refused while the part is cut (its placement is locked:
+    /// uncut it first); the part's material, placement and slot stay.
+    /// </summary>
+    void OnSetOption(IPlayer player, int part, int option)
+    {
+        var g = GarmentBase;
+        if (g == null) { Fail(player, "tailor-err-nogarment"); return; }
+        if (part < 0 || part >= g.Parts.Length || option < 0 || option >= g.Parts[part].Options.Length) return;
+        if (Session.IsCut(part)) { Fail(player, "tailoring-flow-locked-option", PartName(part)); return; }
+        if (Session.SetOption(g, part, option)) Blockentity.MarkDirty(true);
+    }
+
     /// <summary>Sneak + empty hand on an optional part: take its material back, or switch it on / off.</summary>
     void OnTogglePart(IPlayer player, int part)
     {

@@ -13,6 +13,9 @@ namespace ArtsAndCrafts.Tailor.Tailoring;
 /// sewing slot (1 item: cloth, leather, pelt or hard item as the part allows) and a button that selects it; optional
 /// parts may stay empty (their model elements are then left out). The canvas shows the garment's texture; drag inside a
 /// patterned cloth part to move its pattern, nudge or rotate the selected part. The mannequin wears the layout live.
+/// lane/modular-parts: parts with options (recipe <c>options</c>) get a row of toggle buttons under the garments, one per
+/// option (exactly one pressed; an optional part's choice only applies once it is filled); the part rows, canvas and
+/// mannequin follow the chosen option and the part keeps its slot, material and placement.
 /// Step 3: "Cut and sew" once every required part is filled → the mannequin wears the garment (or the player gets it).
 /// Closing keeps the session; "Cancel" gives the materials back and ends it (lane/playtest-fixes-5). Local copy of the
 /// placements for drag previews; every change is a packet and the server state wins on the next sync.
@@ -40,6 +43,8 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
     (int x, int y) lastDrag;
     string shownGarment = "";
     string composedFor = "\0";
+    /// <summary>Texts that did not fit their box, logged once (client-main.log "[actailor] tailoring dialog: ... does not fit").</summary>
+    readonly System.Collections.Generic.HashSet<string> overflowLogged = new();
     int selectedPiece;
     int[]? pixels;
     /// <summary>Body part (dress slot) chosen in step 1, client side only; null = none chosen yet.</summary>
@@ -72,7 +77,7 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
         }
         var garments = host.AllowedGarments;
         var g = host.Garment;
-        composedFor = g?.Code ?? "";
+        composedFor = ComposeKey(g);
         int parts = g?.Parts.Length ?? 0;
 
         double listW = ListW, partColW = PartColW;
@@ -82,7 +87,7 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
         if (chosenSlot == null || Array.IndexOf(slots, chosenSlot) < 0)
         {
             chosenSlot = g?.DressType ?? (slots.Length == 1 ? slots[0] : null);
-            page = g == null ? 0 : MannequinFit.PageOf(Array.IndexOf(MannequinFit.ForSlot(garments, chosenSlot), g), GarmentsPerPage);
+            page = g == null ? 0 : MannequinFit.PageOf(Array.IndexOf(MannequinFit.ForSlot(garments, chosenSlot), g.Root), GarmentsPerPage);
         }
         // Buttons sized to their labels ("Upper body over"), flowed into rows (lane/sewing-polish).
         var (slotBounds, slotFlowRows) = GuiFit.Flow(slots.Select(sl => Lang.Get("clothcategory-" + sl)), 0, TopY, listW, 70, RowPitch);
@@ -102,7 +107,9 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
         var (garmentBounds, garmentFlowRows) = GuiFit.Flow(onPage.Select(gd => L("garment-" + gd.Code)), 0, garmentsY, listW, 90, RowPitch);
         var garmentButtons = onPage.Select((gd, i) => (gd, garmentBounds[i])).ToArray();
         int garmentRows = chosenSlot == null ? 0 : Math.Max(1, garmentFlowRows);
-        double partsY = garmentsY + garmentRows * RowPitch + 22;
+        // lane/modular-parts: one row of option buttons per part with options (labels sized to their text, flowed like the garments).
+        var optionRows = OptionRows(g, garmentsY + garmentRows * RowPitch + 4, listW, out double optionsH);
+        double partsY = garmentsY + garmentRows * RowPitch + 22 + optionsH;
         ElementBounds partsLabel = ElementBounds.Fixed(0, partsY - 18, partColW, 18);
         // Left: one row per part (slot + select button)
         var partRows = Enumerable.Range(0, parts).Select(i =>
@@ -153,6 +160,15 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
             string code = gd.Code;
             c.AddToggleButton(L("garment-" + code), CairoFont.SmallButtonText(), _ => { host.SendSelectGarment(code); Rebuild(); }, b, "garment-" + code);
         }
+        foreach (var row in optionRows)
+        {
+            c.AddStaticText(row.label, CairoFont.WhiteSmallText(), row.labelBounds);
+            for (int k = 0; k < row.names.Length; k++)
+            {
+                int part = row.part, option = k;
+                c.AddToggleButton(row.names[k], CairoFont.SmallButtonText(), _ => OnChooseOption(part, option), row.bounds[k], $"opt-{part}-{k}");
+            }
+        }
         c.AddStaticText(L(g == null ? "tailoring-gui-parts-none" : "tailoring-gui-parts"), CairoFont.WhiteSmallText(), partsLabel);
         for (int i = 0; i < parts; i++)
         {
@@ -182,9 +198,53 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
         SetTabs();
         if (chosenSlot != null) SingleComposer.GetToggleButton("slot-" + chosenSlot)?.SetValue(true);
         if (g != null) SingleComposer.GetToggleButton("garment-" + g.Code)?.SetValue(true);
+        foreach (var row in optionRows)
+            for (int k = 0; k < row.names.Length; k++) SingleComposer.GetToggleButton($"opt-{row.part}-{k}")?.SetValue(g!.Parts[row.part].Chosen == k);
         Refresh();
     }
 
+    /// <summary>Dialog structure key: the garment and its options (the part rows are rebuilt when either changes).</summary>
+    static string ComposeKey(GarmentDef? g) => g == null ? "" : g.Code + "/" + GarmentDef.ChoiceKey(g.Choice);
+
+    sealed record OptionRow(int part, string label, ElementBounds labelBounds, string[] names, ElementBounds[] bounds);
+
+    /// <summary>Option button rows (parts with two or more options) from <paramref name="y"/>; <paramref name="height"/> = their total height.</summary>
+    OptionRow[] OptionRows(GarmentDef? g, double y, double width, out double height)
+    {
+        height = 0;
+        if (g == null) return Array.Empty<OptionRow>();
+        var rows = new System.Collections.Generic.List<OptionRow>();
+        double x0 = PartColW, maxW = width - PartColW;
+        foreach (int part in g.ChoosableParts)
+        {
+            var def = g.Parts[part];
+            string label = L("tailoring-gui-option-of", L("part-" + def.Code)) + (def.Optional ? " " + L("tailoring-gui-optional") : "");
+            string[] names = Enumerable.Range(0, def.Options.Length).Select(k => L(def.OptionName(k))).ToArray();
+            var (bounds, nrows) = GuiFit.Flow(names, x0, y + height, maxW, 60, RowPitch);
+            LogFit("option-label-" + def.Code, label, PartColW - 6, CairoFont.WhiteSmallText());
+            for (int k = 0; k < names.Length; k++) LogFit($"option-{def.Code}-{k}", names[k], bounds[k].fixedWidth - 2 * GuiFit.Pad, CairoFont.SmallButtonText());
+            rows.Add(new OptionRow(part, label, ElementBounds.Fixed(0, y + height + 4, PartColW - 6, 18), names, bounds));
+            height += Math.Max(1, nrows) * RowPitch;
+        }
+        if (rows.Count > 0) height += 4;
+        return rows.ToArray();
+    }
+
+    /// <summary>Logs once when <paramref name="text"/> is wider than <paramref name="width"/> GUI units (text-fit evidence for the owner's client tests).</summary>
+    void LogFit(string key, string text, double width, CairoFont font)
+    {
+        double w = GuiFit.TextWidth(font, text);
+        if (w <= width || !overflowLogged.Add(key)) return;
+        capi.Logger.Warning("[actailor] tailoring dialog: text '{0}' does not fit its box ({1:0} > {2:0} units): {3}", key, w, width, text);
+    }
+
+    void OnChooseOption(int part, int option)
+    {
+        var g = host.Garment;
+        if (g == null || part < 0 || part >= g.Parts.Length) return;
+        if (g.Parts[part].Chosen != option) host.SendSetOption(part, option); // the sync rebuilds the dialog
+        else Rebuild(); // the pressed option stays pressed
+    }
     void OnChooseSlot(string slot)
     {
         if (chosenSlot != slot) page = 0;
@@ -226,7 +286,7 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
             OnStateChangedEmbroider();
             return;
         }
-        if ((host.Garment?.Code ?? "") != composedFor) SetupDialog(); // other recipe: other part rows
+        if (ComposeKey(host.Garment) != composedFor) SetupDialog(); // other recipe or other options: other part rows
         else Refresh();
     }
 

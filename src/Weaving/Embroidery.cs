@@ -187,6 +187,23 @@ public sealed class Embroidery
     public static Embroidery? Read(ITreeAttribute? attrs, int w, int h)
         => FromTree(attrs?[AttrTree] as ITreeAttribute) is { } e && e.Width == w && e.Height == h ? e : null;
 
+    /// <summary>
+    /// Like <see cref="Read"/>, but a layer of the same width and fewer rows (a garment texture that grew rows below its layout,
+    /// lane/modular-parts) is padded with empty rows instead of dropped: the stitches keep their texels.
+    /// </summary>
+    public static Embroidery? ReadGrown(ITreeAttribute? attrs, int w, int h)
+    {
+        var e = FromTree(attrs?[AttrTree] as ITreeAttribute);
+        if (e == null || e.Width != w || e.Height > h) return null;
+        if (e.Height == h) return e;
+        var grown = new Embroidery(w, h);
+        grown.Codes.AddRange(e.Codes);
+        grown.Colors.AddRange(e.Colors);
+        grown.Paid.UnionWith(e.Paid);
+        System.Array.Copy(e.Cells, grown.Cells, e.Cells.Length);
+        return grown;
+    }
+
     /// <summary>Store the layer on cloth attributes; an empty (or null) layer removes the tree.</summary>
     public static void Write(ITreeAttribute attrs, Embroidery? layer)
     {
