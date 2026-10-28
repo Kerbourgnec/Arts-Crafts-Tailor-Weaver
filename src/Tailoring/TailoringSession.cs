@@ -19,6 +19,11 @@ public sealed class TailoringSession
     public string GarmentCode { get; private set; } = "";
     public PieceAssignment[] Pieces { get; private set; } = Array.Empty<PieceAssignment>();
     /// <summary>
+    /// Modular parts (lane/modular-parts): chosen option per part (<see cref="GarmentDef.Choice"/>, -1 = plain part). The part's slot,
+    /// material and placement stay when the choice changes. Reset with the garment (first options).
+    /// </summary>
+    public int[] Choice { get; private set; } = Array.Empty<int>();
+    /// <summary>
     /// Applied (paid) stitches on the garment in progress (lane/mannequin-embroidery), garment texture size; null = none.
     /// Cleared with the garment (another garment, cancel; a cut moves them onto the sewn garment).
     /// </summary>
@@ -105,6 +110,7 @@ public sealed class TailoringSession
         Wrap = new WrapLayout();
         Charged.Clear();
         Pieces = (g?.Parts ?? Array.Empty<PartDef>()).Select(_ => new PieceAssignment(-1)).ToArray();
+        Choice = g?.Root.Choice.ToArray() ?? Array.Empty<int>();
         PartCut = new bool[Pieces.Length];
         PartOn = new bool[Pieces.Length];
         return true;
@@ -118,8 +124,21 @@ public sealed class TailoringSession
         return true;
     }
 
+    /// <summary>
+    /// Chooses option <paramref name="option"/> of part <paramref name="part"/> (lane/modular-parts). False (unchanged) for a part
+    /// without that option, no garment, or the same choice. The host refuses it while the part is cut (placement locked).
+    /// </summary>
+    public bool SetOption(GarmentDef g, int part, int option)
+    {
+        if (g.Code != GarmentCode || part < 0 || part >= Choice.Length || part >= g.Parts.Length) return false;
+        if (option < 0 || option >= g.Parts[part].Options.Length || Choice[part] == option) return false;
+        Choice[part] = option;
+        return true;
+    }
+
     public void Reset()
     {
+        Choice = Array.Empty<int>();
         Embroidery = null;
         Drafts.Clear(GarmentEmbroidery.TargetSession);
         Wrap = new WrapLayout();
@@ -163,11 +182,12 @@ public sealed class TailoringSession
     /// Garment data of a cut: one material entry per filled part (part order); empty optional parts get -1. Item
     /// materials (not patterned) keep only their turn (no pattern offset).
     /// </summary>
+    /// <param name="g">The recipe resolved for the session's choice (<see cref="GarmentDef.Resolve"/>): the options go onto the garment.</param>
     /// <param name="embroidery">The session's stitches: kept where the sewn materials take stitches (others dropped).</param>
     public static GarmentData BuildGarment(GarmentDef g, IReadOnlyList<PieceAssignment> placements, Func<int, SlotMaterial?> materialOf,
         Weaving.Embroidery? embroidery = null, WrapLayout? wrap = null)
     {
-        var data = new GarmentData { Garment = g.Code, Pieces = new PieceAssignment[g.Parts.Length], Wrap = wrap?.Clone() };
+        var data = new GarmentData { Garment = g.Code, Pieces = new PieceAssignment[g.Parts.Length], Wrap = wrap?.Clone(), Choice = g.HasOptions ? g.Choice.ToArray() : null };
         for (int p = 0; p < g.Parts.Length; p++)
         {
             var m = g.Parts[p].IsFixed ? null : materialOf(p); // fixed parts store nothing: the recipe renders them
@@ -193,6 +213,7 @@ public sealed class TailoringSession
         tree["pieceRot"] = new IntArrayAttribute(Pieces.Select(p => p.Rot).ToArray());
         Weaving.Embroidery.Write(tree, Embroidery?.Clone()); // tree "embroidery"; none when empty
         Wrap.ToTree(tree); // lane/body-wrap
+        tree["partOption"] = new IntArrayAttribute(Choice.ToArray());
         tree["partCut"] = new IntArrayAttribute(PartCut.Select(c => c ? 1 : 0).ToArray()); // lane/drape-cut-sew
         tree["partOn"] = new IntArrayAttribute(PartOn.Select(c => c ? 1 : 0).ToArray());
         if (Charged.Count > 0) tree["embCharged"] = new StringArrayAttribute(Charged.OrderBy(c => c, StringComparer.Ordinal).ToArray());
@@ -220,8 +241,10 @@ public sealed class TailoringSession
         }
         PartCut = Flags("partCut");
         PartOn = Flags("partOn");
+        int[] opt = (tree["partOption"] as IntArrayAttribute)?.value ?? Array.Empty<int>(); // older saves: first options
+        Choice = g != null ? g.NormalizeChoice(opt) : opt.ToArray();
         // Stitches: checked against the garment texture size when the recipe is known (other size = recipe changed → dropped).
-        Embroidery = g != null ? Weaving.Embroidery.Read(tree, g.TextureWidth, g.TextureHeight)
+        Embroidery = g != null ? Weaving.Embroidery.ReadGrown(tree, g.TextureWidth, g.TextureHeight)
             : Weaving.Embroidery.FromTree(tree[Weaving.Embroidery.AttrTree] as ITreeAttribute);
         Wrap = WrapLayout.FromTree(tree) ?? new WrapLayout(); // sessions saved before lane/body-wrap: body space, no offsets
         Charged.Clear();

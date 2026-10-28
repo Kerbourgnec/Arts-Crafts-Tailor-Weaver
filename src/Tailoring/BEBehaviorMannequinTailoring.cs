@@ -29,6 +29,7 @@ public enum TailorPacket
     TogglePart = 1211,    // lane/drape-cut-sew: int32 part; sneak + empty hand on an optional part
     EmbStroke = 1212,     // lane/sewing-polish: byte newStroke + GarmentEmbroidery.EncodeDiff onto the pending stitches (free)
     EmbEdit = 1213,       // lane/sewing-polish: int32 target, int32 EmbEditOp (undo / redo / discard the pending stitches)
+    SetOption = 1214,     // lane/modular-parts: int32 part, int32 option (index into the part's options)
 }
 
 /// <summary>
@@ -82,7 +83,29 @@ public partial class BEBehaviorMannequinTailoring : BlockEntityBehavior, IIntera
             (id, inv) => new ItemSlotTailorMaterial(inv, id, (part, m) => TailoringSession.SlotAccepts(Garment, part, m)));
     }
 
-    public GarmentDef? Garment => Api == null ? null : GarmentCatalog.Get(Api).Find(Session.GarmentCode);
+    /// <summary>The garment in progress with the session's options resolved (lane/modular-parts: its parts carry the chosen options).</summary>
+    public GarmentDef? Garment
+    {
+        get
+        {
+            var b = GarmentBase;
+            if (b == null) return null;
+            var c = Session.Choice;
+            if (!ReferenceEquals(garmentFor, b) || garmentChoice.Length != c.Length || !garmentChoice.AsSpan().SequenceEqual(c)) // asked many times a tick: resolve on change only
+            {
+                garmentFor = b;
+                garmentChoice = c.ToArray();
+                garmentResolved = b.Resolve(c);
+            }
+            return garmentResolved;
+        }
+    }
+
+    GarmentDef? garmentFor, garmentResolved;
+    int[] garmentChoice = Array.Empty<int>();
+
+    /// <summary>The catalog recipe of the garment in progress (first options): names, slots, option lists.</summary>
+    public GarmentDef? GarmentBase => Api == null ? null : GarmentCatalog.Get(Api).Find(Session.GarmentCode);
 
     /// <summary>Clothes category (dress type) of a garment, e.g. upperbody (recipe <c>dressType</c> = item <c>clothescategory</c>).</summary>
     public static string? CategoryOf(GarmentDef g) => g.DressType;
@@ -289,6 +312,15 @@ public partial class BEBehaviorMannequinTailoring : BlockEntityBehavior, IIntera
     /// <summary>Body-space composition input of the garment in progress (lane/body-wrap); null without a body map.</summary>
     public BodyWrap? SessionWrap(GarmentDef g) => BodyWrapCache.For(Api, g, Session.Wrap);
 
+    /// <summary>Chooses option <paramref name="option"/> of part <paramref name="part"/> (lane/modular-parts).</summary>
+    public void SendSetOption(int part, int option)
+    {
+        var data = new byte[8];
+        BitConverter.GetBytes(part).CopyTo(data, 0);
+        BitConverter.GetBytes(option).CopyTo(data, 4);
+        Send(TailorPacket.SetOption, data);
+    }
+
     public void SendCut() => Send(TailorPacket.Cut);
     public void SendCancel() => Send(TailorPacket.Cancel);
 
@@ -298,7 +330,11 @@ public partial class BEBehaviorMannequinTailoring : BlockEntityBehavior, IIntera
     {
         dialog?.OnStateChanged();
         RegenPreviewClient();
+        ClientStateChanged?.Invoke();
     }
+
+    /// <summary>Client: raised after every sync / slot change (the garment picker redraws its option buttons, lane/modular-parts).</summary>
+    public event Action? ClientStateChanged;
 
     public override void OnReceivedServerPacket(int packetid, byte[] data)
     {
@@ -357,7 +393,7 @@ public partial class BEBehaviorMannequinTailoring : BlockEntityBehavior, IIntera
         }
         // In-world painting and draping (lane/mannequin-paint) need no open dialog: allowed while nobody else holds the lock.
         bool inWorld = packetid == (int)TailorPacket.EmbApply || packetid == (int)TailorPacket.SetSegment || packetid == (int)TailorPacket.Drape
-            || packetid == (int)TailorPacket.Cancel || (packetid >= (int)TailorPacket.StartGarment && packetid <= (int)TailorPacket.EmbEdit); // lane/drape-cut-sew, lane/sewing-polish
+            || packetid == (int)TailorPacket.Cancel || (packetid >= (int)TailorPacket.StartGarment && packetid <= (int)TailorPacket.SetOption); // lane/drape-cut-sew, lane/sewing-polish
         if (OpenedBy != player.PlayerUID && !(inWorld && !LockedByOther(player)))
         {
             if (inWorld) Fail(player, "tailor-err-inuse", Api.World.PlayerByUid(OpenedBy)?.PlayerName ?? "?");
@@ -423,6 +459,9 @@ public partial class BEBehaviorMannequinTailoring : BlockEntityBehavior, IIntera
             case TailorPacket.Sew:
                 OnSew(player);
                 break;
+            case TailorPacket.SetOption:
+                if (data != null && data.Length >= 8) OnSetOption(player, BitConverter.ToInt32(data, 0), BitConverter.ToInt32(data, 4));
+                break;
             case TailorPacket.TogglePart:
                 if (data != null && data.Length >= 4) OnTogglePart(player, BitConverter.ToInt32(data, 0));
                 break;
@@ -447,7 +486,7 @@ public partial class BEBehaviorMannequinTailoring : BlockEntityBehavior, IIntera
         var stack = inv[slot].Itemstack;
         if (stack?.Collectible is not ItemTailoredGarment item || item.Def is not { } def) return null;
         var data = GarmentData.FromStack(stack, def);
-        return data == null ? null : (def, data, inv[slot]);
+        return data == null ? null : (data.Resolve(def), data, inv[slot]); // lane/modular-parts: the def of the stack's options
     }
 
     /// <summary>

@@ -12,8 +12,55 @@ namespace ArtsAndCrafts.Tailor.Tailoring;
 /// texture (half-open [x1,y1,x2,y2]), the material kinds it takes, whether it may stay empty, and the shape elements
 /// that only exist when it is filled. A filled part consumes 1 item of its material (lane/garment-system).
 /// </summary>
+public class PartOption
+{
+    /// <summary>Option code (unique within the part), stored in stacks (<c>pieceOption</c>).</summary>
+    [JsonProperty("code")] public string Code = "";
+    /// <summary>Lang key (without domain) of the option's name; default <c>part-{part}-{option}</c>.</summary>
+    [JsonProperty("name")] public string? Name;
+    /// <summary>Texel regions of this variant on the garment texture (half-open); required.</summary>
+    [JsonProperty("regions")] public int[][] Regions = System.Array.Empty<int[]>();
+    /// <summary>Mask / layer / shading: omitted = the part's own value (filled in at load).</summary>
+    [JsonProperty("mask")] public int[][]? Mask;
+    [JsonProperty("layer")] public int? Layer;
+    [JsonProperty("shade")] public bool? Shade;
+    [JsonProperty("highlight")] public bool? Highlight;
+    /// <summary>Shape elements of this variant (children go with them): shown only while it is chosen (an optional part: and filled).</summary>
+    [JsonProperty("elements")] public string[]? Elements;
+}
+
+/// <summary>
+/// One part of a garment recipe (like an ingredient of a vanilla cooking recipe): texel regions of the garment
+/// texture (half-open [x1,y1,x2,y2]), the material kinds it takes, whether it may stay empty, and the shape elements
+/// that only exist when it is filled. A filled part consumes 1 item of its material (lane/garment-system).
+/// lane/modular-parts: a part may list <see cref="Options"/> (variants with their own geometry and texture regions); it
+/// still has one sewing slot and one material. The catalog def carries the first option; <see cref="GarmentDef.Resolve"/>
+/// gives the def of any choice (docs/garments.md "Modular parts").
+/// </summary>
 public class PartDef
 {
+    /// <summary>Variants (lane/modular-parts); empty = a plain part. Kept on every resolved copy.</summary>
+    [JsonProperty("options")] public PartOption[] Options = System.Array.Empty<PartOption>();
+    /// <summary>Resolved copy only: index of the option these fields come from (-1 = plain part).</summary>
+    [JsonIgnore] public int Chosen = -1;
+    public PartDef Copy() => (PartDef)MemberwiseClone();
+    /// <summary>Lang key (without domain) of option <paramref name="k"/>.</summary>
+    public string OptionName(int k) => Options[k].Name ?? $"part-{Code}-{Options[k].Code}";
+    /// <summary>This part with option <paramref name="k"/>'s regions, mask, layer, shading and elements (options are complete after load).</summary>
+    public PartDef WithOption(int k)
+    {
+        var o = Options[k];
+        var c = Copy();
+        c.Regions = o.Regions;
+        c.Mask = o.Mask;
+        c.Layer = o.Layer ?? Layer;
+        c.Shade = o.Shade ?? Shade;
+        c.Highlight = o.Highlight ?? Highlight;
+        c.Elements = o.Elements ?? System.Array.Empty<string>();
+        c.Chosen = k;
+        return c;
+    }
+
     [JsonProperty("code")] public string Code = "";
     /// <summary>Unwrap regions on the garment texture (texels, half-open). The first part listed owns overlapping texels.</summary>
     [JsonProperty("regions")] public int[][] Regions = System.Array.Empty<int[]>();
@@ -161,6 +208,80 @@ public class GarmentDef
     bool[][]? coverage;
 
     /// <summary>
+    /// Modular parts (lane/modular-parts): option index per part (-1 = a plain part); length = <see cref="Parts"/>. The catalog def
+    /// holds the first option of every part with options; <see cref="Resolve"/> returns the def of another choice.
+    /// </summary>
+    [JsonIgnore] public int[] Choice = System.Array.Empty<int>();
+    /// <summary>The catalog def a resolved copy came from (null on the catalog def itself).</summary>
+    [JsonIgnore] public GarmentDef? Source;
+    [JsonIgnore] public GarmentDef Root => Source ?? this;
+    readonly System.Collections.Concurrent.ConcurrentDictionary<string, GarmentDef> resolved = new();
+
+    public bool HasOptions => Parts.Any(p => p.Options.Length > 0);
+    /// <summary>Parts a player chooses a variant of (two or more options).</summary>
+    public IEnumerable<int> ChoosableParts => Enumerable.Range(0, Parts.Length).Where(p => Parts[p].Options.Length > 1);
+
+    /// <summary>Choice array of a choice read from a stack / session: wrong length or out-of-range entries fall back to the first option.</summary>
+    public int[] NormalizeChoice(int[]? choice)
+    {
+        var r = new int[Parts.Length];
+        for (int p = 0; p < r.Length; p++)
+        {
+            int n = Parts[p].Options.Length;
+            r[p] = n == 0 ? -1 : choice != null && p < choice.Length && choice[p] >= 0 && choice[p] < n ? choice[p] : 0;
+        }
+        return r;
+    }
+
+    public static string ChoiceKey(int[] choice) => string.Join(",", choice);
+
+    /// <summary>
+    /// The def with option <c>choice[p]</c> of every part with options (null = the first of each). Cached per choice; the
+    /// catalog def is returned for the first-option choice. Resolved defs share everything but <see cref="Parts"/> (regions,
+    /// masks, layers, shading, elements of the chosen options) and have their own coverage caches.
+    /// </summary>
+    public GarmentDef Resolve(int[]? choice)
+    {
+        var root = Root;
+        var c = root.NormalizeChoice(choice);
+        if (root.Choice.SequenceEqual(c)) return root;
+        return root.resolved.GetOrAdd(ChoiceKey(c), _ =>
+        {
+            var g = (GarmentDef)root.MemberwiseClone();
+            g.owner = null;
+            g.coverage = null;
+            g.Source = root;
+            g.Choice = c;
+            g.Parts = root.Parts.Select((p, i) => c[i] >= 0 ? p.WithOption(c[i]) : p).ToArray();
+            return g;
+        });
+    }
+
+    /// <summary>Every choice of this recipe (the cartesian product of the parts' options); one all-default choice when it has none.</summary>
+    public IEnumerable<int[]> AllChoices()
+    {
+        IEnumerable<int[]> acc = new[] { System.Array.Empty<int>() };
+        foreach (var p in Parts)
+        {
+            int n = System.Math.Max(1, p.Options.Length);
+            acc = acc.SelectMany(a => Enumerable.Range(0, n).Select(k => a.Append(p.Options.Length == 0 ? -1 : k).ToArray())).ToArray();
+        }
+        return acc;
+    }
+
+    /// <summary>Elements of the options not chosen: never shown (the model carries every option's elements).</summary>
+    public string[] UnchosenElements()
+    {
+        var keep = new HashSet<string>(Parts.SelectMany(p => p.Elements), System.StringComparer.OrdinalIgnoreCase);
+        return Parts.Where(p => p.Options.Length > 0)
+            .SelectMany(p => p.Options.Where((_, k) => k != p.Chosen).SelectMany(o => o.Elements ?? System.Array.Empty<string>()))
+            .Where(e => !keep.Contains(e)).Distinct().ToArray();
+    }
+
+    /// <summary>Texels part <paramref name="p"/> (with the chosen option) owns: what its material covers (fabric use of the choice).</summary>
+    public int PartArea(int p) => Coverage[p].Count(b => b);
+
+    /// <summary>
     /// Texels each part covers (row-major): regions &amp; mask, minus texels an earlier part of the same layer covers.
     /// Parts of different layers overlap freely.
     /// </summary>
@@ -180,6 +301,7 @@ public class GarmentDef
     public string[] HiddenElements(System.Func<int, bool> filled)
     {
         var list = new List<string>(HideElements);
+        list.AddRange(UnchosenElements()); // lane/modular-parts
         for (int p = 0; p < Parts.Length; p++)
         {
             if (Parts[p].Optional && !filled(p)) list.AddRange(Parts[p].Elements);
@@ -216,7 +338,20 @@ public class GarmentCatalog
         {
             p.Materials ??= new[] { MaterialKind.Cloth };
             p.Elements ??= System.Array.Empty<string>();
+            p.Options ??= System.Array.Empty<PartOption>();
+            foreach (var o in p.Options) // options complete: omitted fields = the part's
+            {
+                o.Regions ??= System.Array.Empty<int[]>();
+                o.Mask ??= p.Mask;
+                o.Layer ??= p.Layer;
+                o.Shade ??= p.Shade;
+                o.Highlight ??= p.Highlight;
+                o.Elements ??= System.Array.Empty<string>();
+            }
         }
+        // The catalog def shows the first option of every part with options (so every consumer of the plain def, items, scripts, old stacks, is unchanged).
+        for (int p = 0; p < g.Parts.Length; p++) if (g.Parts[p].Options.Length > 0) g.Parts[p] = g.Parts[p].WithOption(0);
+        g.Choice = g.Parts.Select(p => p.Options.Length > 0 ? 0 : -1).ToArray();
         return g;
     }
 
@@ -266,35 +401,52 @@ public class GarmentCatalog
                     string known = materials == null ? "" : string.Join(", ", materials.Families.Select(f => f.Code).Concat(materials.Groups));
                     yield return $"{g.Code}/{p.Code}: materials [{string.Join(",", p.Materials)}] (families or groups: {known})";
                 }
-                if (p.Regions.Length == 0) yield return $"{g.Code}/{p.Code}: no regions";
-                foreach (var r in p.Regions)
+                if (p.Options.Length > 0)
                 {
-                    if (BadRect(r, g.TextureWidth, g.TextureHeight)) yield return $"{g.Code}/{p.Code}: region [{string.Join(",", r)}] outside {g.TextureWidth}x{g.TextureHeight}";
+                    if (p.IsFixed) yield return $"{g.Code}/{p.Code}: a fixed part cannot have options";
+                    foreach (var dup in p.Options.GroupBy(o => o.Code).Where(x => x.Count() > 1)) yield return $"{g.Code}/{p.Code}: duplicate option code '{dup.Key}'";
+                    foreach (var o in p.Options.Where(o => o.Code.Length == 0)) yield return $"{g.Code}/{p.Code}: option without code";
                 }
-                if (p.IsFixed && p.Optional) yield return $"{g.Code}/{p.Code}: a fixed part (fixedTexture) cannot be optional";
-                var fc = p.FixedCrop;
-                if (fc != null && (!p.IsFixed || fc.Length != 4 || fc[0] < 0 || fc[1] < 0 || fc[0] >= fc[2] || fc[1] >= fc[3])) yield return $"{g.Code}/{p.Code}: bad fixedCrop (or no fixedTexture)";
-                if (p.Elements.Length > 0 && !p.Optional) yield return $"{g.Code}/{p.Code}: elements listed on a required part (only optional parts hide elements)";
-                if (p.SplitFrom != null && g.PartIndex(p.SplitFrom) < 0) yield return $"{g.Code}/{p.Code}: splitFrom '{p.SplitFrom}' unknown";
-                if (p.Layer < 0) yield return $"{g.Code}/{p.Code}: layer {p.Layer} (0 = base, higher = on top)";
-                if (p.Shade && string.IsNullOrEmpty(g.ShadingTexture)) yield return $"{g.Code}/{p.Code}: shade without the garment's shadingTexture";
-                if (p.Mask != null)
+                for (int k = 0; k < System.Math.Max(1, p.Options.Length); k++)
                 {
-                    if (p.Mask.Length == 0) yield return $"{g.Code}/{p.Code}: empty mask (omit it to own the whole regions)";
-                    foreach (var r in p.Mask)
-                    {
-                        if (BadRect(r, g.TextureWidth, g.TextureHeight)) yield return $"{g.Code}/{p.Code}: mask rect [{string.Join(",", r)}] outside {g.TextureWidth}x{g.TextureHeight}";
-                    }
-                    if (p.Mask.All(r => !BadRect(r, g.TextureWidth, g.TextureHeight)) && p.Regions.All(r => !BadRect(r, g.TextureWidth, g.TextureHeight)))
-                    {
-                        int outside = GarmentLayout.MaskOutsideRegions(p);
-                        if (outside > 0) yield return $"{g.Code}/{p.Code}: {outside} mask texels outside the part's regions";
-                    }
+                    var v = p.Options.Length == 0 ? p : p.WithOption(k);
+                    string at = p.Options.Length == 0 ? $"{g.Code}/{p.Code}" : $"{g.Code}/{p.Code}[{p.Options[k].Code}]";
+                    foreach (string problem in ValidateVariant(g, v, at)) yield return problem;
                 }
             }
             if (g.ShadeStrength < 0 || g.ShadeStrength > 1) yield return $"{g.Code}: shadeStrength {g.ShadeStrength} (0..1)";
             if (g.Sleeves != WrapLayout.SleevesContinue && g.Sleeves != WrapLayout.SleevesSeparate)
                 yield return $"{g.Code}: sleeves '{g.Sleeves}' ({WrapLayout.SleevesContinue} | {WrapLayout.SleevesSeparate})";
+        }
+    }
+
+    /// <summary>Checks of one part, or of one option of a part (<paramref name="p"/> = the part with that option's fields).</summary>
+    static IEnumerable<string> ValidateVariant(GarmentDef g, PartDef p, string at)
+    {
+        if (p.Regions.Length == 0) yield return $"{at}: no regions";
+        foreach (var r in p.Regions)
+        {
+            if (BadRect(r, g.TextureWidth, g.TextureHeight)) yield return $"{at}: region [{string.Join(",", r)}] outside {g.TextureWidth}x{g.TextureHeight}";
+        }
+        if (p.IsFixed && p.Optional) yield return $"{at}: a fixed part (fixedTexture) cannot be optional";
+        var fc = p.FixedCrop;
+        if (fc != null && (!p.IsFixed || fc.Length != 4 || fc[0] < 0 || fc[1] < 0 || fc[0] >= fc[2] || fc[1] >= fc[3])) yield return $"{at}: bad fixedCrop (or no fixedTexture)";
+        if (p.Elements.Length > 0 && !p.Optional && p.Chosen < 0) yield return $"{at}: elements listed on a required part (only optional parts hide elements)";
+        if (p.SplitFrom != null && g.PartIndex(p.SplitFrom) < 0) yield return $"{at}: splitFrom '{p.SplitFrom}' unknown";
+        if (p.Layer < 0) yield return $"{at}: layer {p.Layer} (0 = base, higher = on top)";
+        if (p.Shade && string.IsNullOrEmpty(g.ShadingTexture)) yield return $"{at}: shade without the garment's shadingTexture";
+        if (p.Mask != null)
+        {
+            if (p.Mask.Length == 0) yield return $"{at}: empty mask (omit it to own the whole regions)";
+            foreach (var r in p.Mask)
+            {
+                if (BadRect(r, g.TextureWidth, g.TextureHeight)) yield return $"{at}: mask rect [{string.Join(",", r)}] outside {g.TextureWidth}x{g.TextureHeight}";
+            }
+            if (p.Mask.All(r => !BadRect(r, g.TextureWidth, g.TextureHeight)) && p.Regions.All(r => !BadRect(r, g.TextureWidth, g.TextureHeight)))
+            {
+                int outside = GarmentLayout.MaskOutsideRegions(p);
+                if (outside > 0) yield return $"{at}: {outside} mask texels outside the part's regions";
+            }
         }
     }
 }
