@@ -235,6 +235,11 @@ public class GarmentDef
     /// the most visible (front-facing first, then the first); <c>first</c> = the first face, as layout 1 (models whose nested pieces share rows).
     /// </summary>
     [JsonProperty("wrapOwner")] public string? WrapOwner;
+    /// <summary>
+    /// Body-space wrap, layout version 2: <c>torso</c> (default) = head and legs take the torso's cloth coordinates, so the cloth runs on from waist to
+    /// ankle and from neck to head; <c>own</c> = each keeps its own frame (a pair of boots shows the same pattern on both).
+    /// </summary>
+    [JsonProperty("wrapFrame")] public string? WrapFrame;
 
     int[]? owner;
     bool[][]? coverage;
@@ -456,6 +461,8 @@ public class GarmentCatalog
                 yield return $"{g.Code}: sleeves '{g.Sleeves}' ({WrapLayout.SleevesContinue} | {WrapLayout.SleevesSeparate})";
             if (g.WrapOwner != null && g.WrapOwner != BodyWrapMap.WrapOwnerVisible && g.WrapOwner != BodyWrapMap.WrapOwnerFirst)
                 yield return $"{g.Code}: wrapOwner '{g.WrapOwner}' ({BodyWrapMap.WrapOwnerVisible} | {BodyWrapMap.WrapOwnerFirst})";
+            if (g.WrapFrame != null && g.WrapFrame != BodyWrapMap.WrapFrameTorso && g.WrapFrame != BodyWrapMap.WrapFrameOwn)
+                yield return $"{g.Code}: wrapFrame '{g.WrapFrame}' ({BodyWrapMap.WrapFrameTorso} | {BodyWrapMap.WrapFrameOwn})";
             foreach (var (key, word) in g.WrapSeam ?? new Dictionary<string, string>())
                 if (!BodyWrapMap.SeamWords.Contains(word)) yield return $"{g.Code}: wrapSeam '{key}': '{word}' ({string.Join(" | ", BodyWrapMap.SeamWords)})";
         }
