@@ -224,6 +224,12 @@ public class GarmentDef
     /// dialog toggles it per garment in progress (<see cref="WrapLayout.Sleeves"/>).
     /// </summary>
     [JsonProperty("sleeves")] public string Sleeves = WrapLayout.SleevesContinue;
+    /// <summary>
+    /// Body-space wrap, layout version 2 (lane/wrap-closure): where a ring of cloth closes (the unavoidable pattern step), per segment code
+    /// (<see cref="BodySegments.Codes"/>) or element name: <c>front</c>, <c>back</c>, <c>left</c>, <c>right</c> (the wearer's), <c>inner</c>
+    /// (towards the body's centre line), <c>outer</c>. Default: head = back, torso and limbs = inner (under the arm, inside of the leg).
+    /// </summary>
+    [JsonProperty("wrapSeam")] public Dictionary<string, string>? WrapSeam;
 
     int[]? owner;
     bool[][]? coverage;
@@ -354,6 +360,7 @@ public class GarmentCatalog
         g.HideElements ??= System.Array.Empty<string>();
         g.Bare ??= System.Array.Empty<string>();
         g.Sleeves ??= WrapLayout.SleevesContinue;
+        if (g.WrapSeam != null) g.WrapSeam = new Dictionary<string, string>(g.WrapSeam, System.StringComparer.OrdinalIgnoreCase);
         foreach (var p in g.Parts)
         {
             p.Materials ??= new[] { MaterialKind.Cloth };
@@ -442,6 +449,8 @@ public class GarmentCatalog
             if (g.ShadeStrength < 0 || g.ShadeStrength > 1) yield return $"{g.Code}: shadeStrength {g.ShadeStrength} (0..1)";
             if (g.Sleeves != WrapLayout.SleevesContinue && g.Sleeves != WrapLayout.SleevesSeparate)
                 yield return $"{g.Code}: sleeves '{g.Sleeves}' ({WrapLayout.SleevesContinue} | {WrapLayout.SleevesSeparate})";
+            foreach (var (key, word) in g.WrapSeam ?? new Dictionary<string, string>())
+                if (!BodyWrapMap.SeamWords.Contains(word)) yield return $"{g.Code}: wrapSeam '{key}': '{word}' ({string.Join(" | ", BodyWrapMap.SeamWords)})";
         }
     }
 

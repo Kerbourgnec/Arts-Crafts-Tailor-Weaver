@@ -33,12 +33,12 @@ public partial class BEBehaviorMannequinTailoring
     public IEnumerable<PaintTarget> PaintTargets()
     {
         if (Api == null) yield break;
-        if (Garment is { } g && BodyWrapCache.Surface(Api, g) is { } s && BodyWrapCache.Map(Api, g) is { } m)
+        if (Garment is { } g && BodyWrapCache.Surface(Api, g) is { } s && BodyWrapCache.Map(Api, g, Session.Wrap.Version) is { } m)
             yield return new PaintTarget(GarmentEmbroidery.TargetSession, g, s, m, s.ShownFaces(g.HiddenElements()), // lane/drape-cut-sew: on / ghost parts too
                 Session.Wrap, MaterialInSlot, (localPieces ?? Session.Pieces).ToArray(), Session.Embroidery, PendingOf(GarmentEmbroidery.TargetSession));
         foreach (int slot in WornTailoredSlots().ToList())
         {
-            if (WornGarment(slot) is not { } w || BodyWrapCache.Surface(Api, w.def) is not { } ws || BodyWrapCache.Map(Api, w.def) is not { } wm) continue;
+            if (WornGarment(slot) is not { } w || BodyWrapCache.Surface(Api, w.def) is not { } ws || BodyWrapCache.Map(Api, w.def, w.data.Wrap?.Version ?? WrapLayout.CurrentVersion) is not { } wm) continue;
             yield return new PaintTarget(slot, w.def, ws, wm, ws.ShownFaces(w.data.HiddenElements(w.def)), w.data.Wrap, w.data.PartMaterial,
                 w.data.Pieces, w.data.Embroidery, PendingOf(slot));
         }

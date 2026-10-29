@@ -37,6 +37,9 @@ public static class BodySegments
 
     public static bool IsArm(int s) => s >= UpperArmR && s <= LowerArmL;
 
+    /// <summary>Segments that take the torso's cloth coordinates whatever the sleeves mode, in layout version 2 (head, legs).</summary>
+    public static bool IsJoined(int s) => s == Head || (s >= UpperLegR && s <= LowerLegL);
+
     public static int Index(string code) => Array.IndexOf(Codes, code);
 }
 
