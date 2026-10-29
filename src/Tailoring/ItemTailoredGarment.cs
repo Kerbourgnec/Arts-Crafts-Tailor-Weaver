@@ -159,7 +159,7 @@ public class ItemTailoredGarment : Item, IAttachableToEntity, IWearableShapeSupp
         {
             var a = data.Pieces[p];
             string part = Lang.Get(TailorModSystem.Domain + ":part-" + def.Parts[p].Code);
-            if (def.Parts[p].Chosen >= 0 && def.Parts[p].Options.Length > 1) part += " (" + Lang.Get(TailorModSystem.Domain + ":" + def.Parts[p].OptionName(def.Parts[p].Chosen)) + ")";
+            if (def.Parts[p].Chosen >= 0 && !def.Parts[p].IsNone && def.Parts[p].Options.Count(o => o.Code != PartDef.NoneCode) > 1) part += " (" + Lang.Get(TailorModSystem.Domain + ":" + def.Parts[p].OptionName(def.Parts[p].Chosen)) + ")";
             var m = data.Material(a.Cloth);
             if (def.Parts[p].IsFixed)
             {
