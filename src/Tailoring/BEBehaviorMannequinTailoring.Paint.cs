@@ -34,7 +34,7 @@ public partial class BEBehaviorMannequinTailoring
     {
         if (Api == null) yield break;
         if (Garment is { } g && BodyWrapCache.Surface(Api, g) is { } s && BodyWrapCache.Map(Api, g) is { } m)
-            yield return new PaintTarget(GarmentEmbroidery.TargetSession, g, s, m, s.ShownFaces(g.HiddenElements(PartShown)), // lane/drape-cut-sew: on / ghost parts too
+            yield return new PaintTarget(GarmentEmbroidery.TargetSession, g, s, m, s.ShownFaces(g.HiddenElements()), // lane/drape-cut-sew: on / ghost parts too
                 Session.Wrap, MaterialInSlot, (localPieces ?? Session.Pieces).ToArray(), Session.Embroidery, PendingOf(GarmentEmbroidery.TargetSession));
         foreach (int slot in WornTailoredSlots().ToList())
         {

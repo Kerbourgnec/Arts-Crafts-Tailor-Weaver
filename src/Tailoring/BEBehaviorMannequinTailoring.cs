@@ -83,7 +83,11 @@ public partial class BEBehaviorMannequinTailoring : BlockEntityBehavior, IIntera
             (id, inv) => new ItemSlotTailorMaterial(inv, id, (part, m) => TailoringSession.SlotAccepts(Garment, part, m)));
     }
 
-    /// <summary>The garment in progress with the session's options resolved (lane/modular-parts: its parts carry the chosen options).</summary>
+    /// <summary>
+    /// The garment in progress with the session's options resolved (lane/modular-parts: its parts carry the chosen options).
+    /// Client: a part left off (none) that shows as ghost (<see cref="SetGhost"/>) is resolved as its first present option, so
+    /// it has texels and elements to see and to pick; <see cref="PartOn"/> still says it is off.
+    /// </summary>
     public GarmentDef? Garment
     {
         get
@@ -91,6 +95,12 @@ public partial class BEBehaviorMannequinTailoring : BlockEntityBehavior, IIntera
             var b = GarmentBase;
             if (b == null) return null;
             var c = Session.Choice;
+            if (ghostParts.Length > 0 && c.Length == b.Parts.Length)
+            {
+                c = c.ToArray();
+                for (int p = 0; p < c.Length && p < ghostParts.Length; p++)
+                    if (ghostParts[p] && b.Parts[p].HasNone && c[p] == b.Parts[p].NoneIndex) c[p] = b.Parts[p].FirstPresent;
+            }
             if (!ReferenceEquals(garmentFor, b) || garmentChoice.Length != c.Length || !garmentChoice.AsSpan().SequenceEqual(c)) // asked many times a tick: resolve on change only
             {
                 garmentFor = b;

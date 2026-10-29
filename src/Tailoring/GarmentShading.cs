@@ -72,18 +72,20 @@ public static class GarmentShading
     /// <summary>
     /// Texels (row-major garment indices) whose vanilla colour shades part <paramref name="part"/>: its coverage minus
     /// texels a higher layer covers (vanilla draws the overlay there, e.g. pearls on the scarf), inside
-    /// <paramref name="src"/> (top-left aligned) and opaque there.
+    /// <paramref name="src"/> (top-left aligned) and opaque there. Overlays count whether or not they are sewn on (a part left
+    /// off = its none option has no texels, <see cref="GarmentDef.AllPresent"/>): the vanilla trim must never shade the bare cloth.
     /// </summary>
     public static List<int> SourceTexels(GarmentDef g, int part, MaterialTexture src)
     {
         var cov = g.Coverage;
+        var over = g.AllPresent().Coverage;
         int w = g.TextureWidth, layer = g.Parts[part].Layer;
         var list = new List<int>();
         for (int i = 0; i < cov[part].Length; i++)
         {
             if (!cov[part][i]) continue;
             bool under = false;
-            for (int q = 0; q < g.Parts.Length && !under; q++) under = g.Parts[q].Layer > layer && cov[q][i];
+            for (int q = 0; q < g.Parts.Length && !under; q++) under = g.Parts[q].Layer > layer && over[q][i];
             if (under) continue;
             int x = i % w, y = i / w;
             if (x >= src.Width || y >= src.Height) continue;

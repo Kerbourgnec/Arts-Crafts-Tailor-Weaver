@@ -162,7 +162,7 @@ public partial class BEBehaviorMannequinTailoring
                 var px = GarmentLayout.Compose(g, localPieces ?? Session.Pieces, MaterialInSlot, MaterialTextureCache.For(capi), emb, SessionWrap(g));
                 DrapeFlow.Ghost(g, px, MaterialInSlot, PartShown); // lane/drape-cut-sew: empty wanted parts are a faint outline
                 TintHover(GarmentEmbroidery.TargetSession, px); // lane/mannequin-paint: brush footprint under the crosshair
-                mesh = BuildPreviewMesh(capi, g, px, g.HiddenElements(PartShown), ref previewSubId);
+                mesh = BuildPreviewMesh(capi, g, px, g.HiddenElements(), ref previewSubId);
             }
             // Worn garments with pending stitches, hovered or painted in the window: drawn here (their own mesh is hidden).
             foreach (int slot in wornSlots)
@@ -216,7 +216,7 @@ public partial class BEBehaviorMannequinTailoring
         subIdSlot = subId;
 
         // A plain stack (no tailoring data): null texture prefix and the item's static textures, like vanilla gear. It only
-        // carries the elements to hide (empty optional parts), read by ItemTailoredGarment.GetShape.
+        // carries the elements to hide (parts left off), read by ItemTailoredGarment.GetShape.
         var collected = new Dictionary<string, CompositeTexture>();
         string[] ignore = Array.Empty<string>();
         var stack = new ItemStack(garmentItem);

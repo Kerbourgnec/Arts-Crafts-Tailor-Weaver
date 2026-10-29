@@ -9,9 +9,9 @@ public enum PartState
 {
     /// <summary>Premade (recipe texture): nothing to do.</summary>
     Fixed,
-    /// <summary>Optional, empty and not wanted: left off the garment (its elements hidden).</summary>
+    /// <summary>May be left off, empty and not wanted (option none): left off the garment (its elements hidden).</summary>
     Off,
-    /// <summary>Required, or optional switched on, and still empty: drape (textile) or attach (hard item) something.</summary>
+    /// <summary>Required, or switched on (a present option of a part that may be left off), and still empty: drape (textile) or attach (hard item) something.</summary>
     Wanted,
     /// <summary>Textile draped, placement still free (anchor, nudge, turn): cut it with shears or a knife.</summary>
     Draped,
@@ -24,7 +24,7 @@ public enum PartState
 /// <summary>What a held item does on a mannequin in the in-world flow.</summary>
 public enum FlowTool { None, Empty, Material, Twine, Shears, SewingKit }
 
-/// <summary>Sneak + empty hand on an optional part.</summary>
+/// <summary>Sneak + empty hand on a part that may be left off (lists a none option).</summary>
 public enum ToggleAction { Refuse, SwitchOn, SwitchOff, TakeOut }
 
 /// <summary>
@@ -57,7 +57,7 @@ public static class DrapeFlow
     public static PartState State(PartDef part, SlotMaterial? m, bool cut, bool on)
     {
         if (part.IsFixed) return PartState.Fixed;
-        if (m == null) return part.Optional && !on ? PartState.Off : PartState.Wanted;
+        if (m == null) return part.HasNone && !on ? PartState.Off : PartState.Wanted;
         if (!NeedsCut(m)) return PartState.Attached;
         return cut ? PartState.Cut : PartState.Draped;
     }
@@ -66,11 +66,11 @@ public static class DrapeFlow
         => State(g.Parts[p], g.Parts[p].IsFixed ? null : materialOf(p), cutOf(p), onOf(p));
 
     /// <summary>Whether a part's model elements show on the mannequin: filled, required, fixed, switched on or <paramref name="ghost"/>.</summary>
-    public static bool Shown(PartDef part, SlotMaterial? m, bool on, bool ghost = false) => !part.Optional || part.IsFixed || m != null || on || ghost;
+    public static bool Shown(PartDef part, SlotMaterial? m, bool on, bool ghost = false) => !part.HasNone || part.IsFixed || m != null || on || ghost;
 
     /// <summary>
     /// Why the sewing kit cannot finish the garment yet: (lang key, part) or null = ready. Order: a material a part does
-    /// not take; a wanted part still empty; a textile not cut yet. Optional parts that are off are skipped.
+    /// not take; a wanted part still empty; a textile not cut yet. Parts left off (option none) are skipped.
     /// </summary>
     public static (string key, int part)? SewProblem(GarmentDef? g, Func<int, SlotMaterial?> materialOf, Func<int, bool> cutOf, Func<int, bool> onOf)
     {
@@ -112,15 +112,15 @@ public static class DrapeFlow
     /// <summary>Refusal of sneak + shears on a part (lang key) or null = uncut it.</summary>
     public static string? UncutRefusal(PartDef part, SlotMaterial? m, bool cut) => State(part, m, cut, true) == PartState.Cut ? null : "tailoring-flow-uncut-not";
 
-    /// <summary>Optional part to toggle at texel <paramref name="i"/>: the highest-layer optional part covering it, -1 = none.</summary>
+    /// <summary>Part to toggle at texel <paramref name="i"/>: the highest-layer part that may be left off covering it (in <paramref name="g"/>, which shows ghost parts as present), -1 = none.</summary>
     public static int TogglePart(GarmentDef g, int i)
-        => Enumerable.Range(0, g.Parts.Length).Where(p => g.Parts[p].Optional && !g.Parts[p].IsFixed && i >= 0 && i < g.Coverage[p].Length && g.Coverage[p][i])
+        => Enumerable.Range(0, g.Parts.Length).Where(p => g.Parts[p].HasNone && !g.Parts[p].IsFixed && i >= 0 && i < g.Coverage[p].Length && g.Coverage[p][i])
             .OrderByDescending(p => g.Parts[p].Layer).DefaultIfEmpty(-1).First();
 
     /// <summary>Sneak + empty hand on part <paramref name="part"/>: filled → material back (off), empty → switch on / off.</summary>
     public static ToggleAction Toggle(PartDef part, SlotMaterial? m, bool on)
     {
-        if (!part.Optional || part.IsFixed) return ToggleAction.Refuse;
+        if (!part.HasNone || part.IsFixed) return ToggleAction.Refuse;
         if (m != null) return ToggleAction.TakeOut;
         return on ? ToggleAction.SwitchOff : ToggleAction.SwitchOn;
     }
@@ -164,11 +164,11 @@ public static class DrapeFlow
         return null;
     }
 
-    /// <summary>Empty optional parts that are off but take <paramref name="held"/>: shown as ghost while it is in hand.</summary>
+    /// <summary>Parts left off (option none) that take <paramref name="held"/>: shown as ghost while it is in hand.</summary>
     public static bool[] GhostParts(GarmentDef g, Func<int, SlotMaterial?> materialOf, Func<int, bool> onOf, SlotMaterial? held)
         => Enumerable.Range(0, g.Parts.Length).Select(p => held != null && State(g, p, materialOf, _ => false, onOf) == PartState.Off && g.Parts[p].Allows(held)).ToArray();
 
-    /// <summary>Sneak + empty hand: every optional part that is off shows as ghost, so it can be found and switched on.</summary>
+    /// <summary>Sneak + empty hand: every part left off shows as ghost, so it can be found and switched on.</summary>
     public static bool[] ToggleGhostParts(GarmentDef g, Func<int, SlotMaterial?> materialOf, Func<int, bool> onOf)
         => Enumerable.Range(0, g.Parts.Length).Select(p => State(g, p, materialOf, _ => false, onOf) == PartState.Off).ToArray();
 

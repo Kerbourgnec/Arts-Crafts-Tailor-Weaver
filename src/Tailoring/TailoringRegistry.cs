@@ -108,7 +108,7 @@ public static class TailoringRegistry
         }).ToList();
         if (mannequins.Count == 0) sapi.Logger.Error("[actailor] tailoring error: no vanilla mannequin blocks");
         sapi.Logger.Notification("[actailor] tailoring: {0} garments ({1}); mannequins {2}", cat.Garments.Length,
-            string.Join(", ", cat.Garments.Select(g => $"{g.Code}:{g.DressType}:{g.Parts.Length} parts ({g.Parts.Count(p => p.Optional)} optional{(g.Parts.Any(p => p.IsFixed) ? ", " + g.Parts.Count(p => p.IsFixed) + " fixed" : "")}{(g.Parts.Any(p => p.Layer > 0) ? ", " + g.Parts.Count(p => p.Layer > 0) + " overlay" : "")}{(g.HasOptions ? ", " + g.Parts.Count(p => p.Options.Length > 0) + " modular (" + string.Join("/", g.Parts.Where(p => p.Options.Length > 0).Select(p => p.Options.Length)) + " options)" : "")}{(g.Parts.Any(p => p.Shade) ? ", " + g.Parts.Count(p => p.Shade) + " shaded" : "")})")),
+            string.Join(", ", cat.Garments.Select(g => $"{g.Code}:{g.DressType}:{g.Parts.Length} parts ({g.Parts.Count(p => p.HasNone)} may be left off{(g.Parts.Any(p => p.IsFixed) ? ", " + g.Parts.Count(p => p.IsFixed) + " fixed" : "")}{(g.Parts.Any(p => p.Layer > 0) ? ", " + g.Parts.Count(p => p.Layer > 0) + " overlay" : "")}{(g.HasOptions ? ", " + g.Parts.Count(p => p.Options.Length > 0) + " modular (" + string.Join("/", g.Parts.Where(p => p.Options.Length > 0).Select(p => p.Options.Length)) + " options)" : "")}{(g.Parts.Any(p => p.Shade) ? ", " + g.Parts.Count(p => p.Shade) + " shaded" : "")})")),
             string.Join(" ", parts));
     }
 }

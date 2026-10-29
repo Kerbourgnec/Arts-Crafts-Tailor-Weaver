@@ -22,7 +22,7 @@ namespace ArtsAndCrafts.Tailor.Tailoring;
 /// Held / GUI: same composed texture in the item atlas on the full-body mesh (like CollectibleBehaviorWearableAttachment).
 /// Without data (creative stack) it renders with its static JSON textures, like a vanilla garment.
 /// Model: <see cref="IWearableShapeSupplier"/> builds the recipe's shape per stack (<see cref="LoadShape"/>: extra shape
-/// merged in, fixed hidden elements and the elements of empty optional parts removed).
+/// merged in, fixed hidden elements and the elements of the options not chosen removed).
 /// </summary>
 public class ItemTailoredGarment : Item, IAttachableToEntity, IWearableShapeSupplier
 {
@@ -71,13 +71,13 @@ public class ItemTailoredGarment : Item, IAttachableToEntity, IWearableShapeSupp
 
     public static AssetLocation ShapeLocation(string code) => new AssetLocation(code).WithPathPrefixOnce("shapes/").WithPathAppendixOnce(".json");
 
-    /// <summary>Elements a stack does not show: from its garment data, else the preview list, else every optional part's.</summary>
+    /// <summary>Elements a stack does not show: from its garment data, else the preview list, else every part that may be left off (catalog def = none first).</summary>
     public static string[] HiddenElements(ItemStack stack, GarmentDef def)
     {
         var data = GarmentData.FromStack(stack, def);
         if (data != null) return data.HiddenElements(def);
         if (stack.Attributes[PreviewHideAttr] is StringArrayAttribute preview) return preview.value ?? System.Array.Empty<string>();
-        return def.HiddenElements(_ => false);
+        return def.HiddenElements();
     }
 
     public VsShape? GetShape(ItemStack stack, Entity forEntity, string texturePrefixCode)

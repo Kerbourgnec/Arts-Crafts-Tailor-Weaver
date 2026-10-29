@@ -15,7 +15,7 @@
 		// Badge: an embroidered cloth patch, leather, or a bone/wood/metal plate.
 		{ code: "badge", regions: [[8, 0, 13, 4]], materials: ["cloth", "leather", "hard"] },
 		// Ribbon: cloth; left empty, the ribbon is not part of the model.
-		{ code: "ribbon", regions: [[8, 4, 14, 10]], materials: ["cloth"], optional: true, elements: ["ribbon"] }
+		{ code: "ribbon", regions: [[8, 4, 14, 10]], materials: ["cloth"], elements: ["ribbon"], options: [{ code: "none" }, { code: "ribbon" }] }
 	],
 	itemType: {
 		textures: {
