@@ -3,6 +3,8 @@
 // belt (waist/sturdy-belt): strap boxes around the lower torso share the top rows of an 8x8-unit texture; the buckle
 // (buckle-bottom + its children) and the belt loop sit on their own texels. Texture 16x16 texels = 8x8 shape units.
 {
+	// Body-space wrap layout 2 (lane/wrap-closure): the strap boxes share one 16x5 tile of texels (vanilla layout): the first face's coordinates keep the front strap continuous.
+	wrapOwner: "first",
 	code: "belt",
 	order: 160,
 	dressType: "waist",

@@ -60,7 +60,7 @@ public partial class BEBehaviorMannequinTailoring
     {
         var g = Garment;
         return g == null ? new bool[BodySegments.Count]
-            : DrapeFlow.LockedSegments(g, BodyWrapCache.Map(Api, g), MaterialInSlot, Session.IsCut, Session.Wrap.Continues(g));
+            : DrapeFlow.LockedSegments(g, BodyWrapCache.Map(Api, g, Session.Wrap.Version), MaterialInSlot, Session.IsCut, Session.Wrap.Continues(g));
     }
 
     /// <summary>Refusal (lang key) of moving part <paramref name="part"/> / segment <paramref name="seg"/>, null = allowed.</summary>

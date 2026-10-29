@@ -224,6 +224,22 @@ public class GarmentDef
     /// dialog toggles it per garment in progress (<see cref="WrapLayout.Sleeves"/>).
     /// </summary>
     [JsonProperty("sleeves")] public string Sleeves = WrapLayout.SleevesContinue;
+    /// <summary>
+    /// Body-space wrap, layout version 2 (lane/wrap-closure): where a ring of cloth closes (the unavoidable pattern step), per segment code
+    /// (<see cref="BodySegments.Codes"/>) or element name: <c>front</c>, <c>back</c>, <c>left</c>, <c>right</c> (the wearer's), <c>inner</c>
+    /// (towards the body's centre line), <c>outer</c>. Default: head = back, torso and limbs = inner (under the arm, inside of the leg).
+    /// </summary>
+    [JsonProperty("wrapSeam")] public Dictionary<string, string>? WrapSeam;
+    /// <summary>
+    /// Body-space wrap, layout version 2: which face a texel shared by several faces takes its cloth coordinates from. <c>visible</c> (default) =
+    /// the most visible (front-facing first, then the first); <c>first</c> = the first face, as layout 1 (models whose nested pieces share rows).
+    /// </summary>
+    [JsonProperty("wrapOwner")] public string? WrapOwner;
+    /// <summary>
+    /// Body-space wrap, layout version 2: <c>torso</c> (default) = head and legs take the torso's cloth coordinates, so the cloth runs on from waist to
+    /// ankle and from neck to head; <c>own</c> = each keeps its own frame (a pair of boots shows the same pattern on both).
+    /// </summary>
+    [JsonProperty("wrapFrame")] public string? WrapFrame;
 
     int[]? owner;
     bool[][]? coverage;
@@ -354,6 +370,7 @@ public class GarmentCatalog
         g.HideElements ??= System.Array.Empty<string>();
         g.Bare ??= System.Array.Empty<string>();
         g.Sleeves ??= WrapLayout.SleevesContinue;
+        if (g.WrapSeam != null) g.WrapSeam = new Dictionary<string, string>(g.WrapSeam, System.StringComparer.OrdinalIgnoreCase);
         foreach (var p in g.Parts)
         {
             p.Materials ??= new[] { MaterialKind.Cloth };
@@ -442,6 +459,12 @@ public class GarmentCatalog
             if (g.ShadeStrength < 0 || g.ShadeStrength > 1) yield return $"{g.Code}: shadeStrength {g.ShadeStrength} (0..1)";
             if (g.Sleeves != WrapLayout.SleevesContinue && g.Sleeves != WrapLayout.SleevesSeparate)
                 yield return $"{g.Code}: sleeves '{g.Sleeves}' ({WrapLayout.SleevesContinue} | {WrapLayout.SleevesSeparate})";
+            if (g.WrapOwner != null && g.WrapOwner != BodyWrapMap.WrapOwnerVisible && g.WrapOwner != BodyWrapMap.WrapOwnerFirst)
+                yield return $"{g.Code}: wrapOwner '{g.WrapOwner}' ({BodyWrapMap.WrapOwnerVisible} | {BodyWrapMap.WrapOwnerFirst})";
+            if (g.WrapFrame != null && g.WrapFrame != BodyWrapMap.WrapFrameTorso && g.WrapFrame != BodyWrapMap.WrapFrameOwn)
+                yield return $"{g.Code}: wrapFrame '{g.WrapFrame}' ({BodyWrapMap.WrapFrameTorso} | {BodyWrapMap.WrapFrameOwn})";
+            foreach (var (key, word) in g.WrapSeam ?? new Dictionary<string, string>())
+                if (!BodyWrapMap.SeamWords.Contains(word)) yield return $"{g.Code}: wrapSeam '{key}': '{word}' ({string.Join(" | ", BodyWrapMap.SeamWords)})";
         }
     }
 

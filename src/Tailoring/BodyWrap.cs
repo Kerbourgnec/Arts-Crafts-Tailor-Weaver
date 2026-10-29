@@ -20,17 +20,25 @@ public readonly record struct SegmentPlacement(int Du, int Dv, int Rot)
 /// <summary>
 /// How a garment's cloth is wrapped around the body (lane/body-wrap): one <see cref="SegmentPlacement"/> per
 /// <see cref="BodySegments"/> entry and the sleeves mode ("" = the recipe's <see cref="GarmentDef.Sleeves"/>,
-/// <see cref="SleevesContinue"/>, <see cref="SleevesSeparate"/>). Tree: int <c>wrap</c> = 1, string <c>sleeves</c>,
+/// <see cref="SleevesContinue"/>, <see cref="SleevesSeparate"/>). Tree: int <c>wrap</c> = version (1, 2), string <c>sleeves</c>,
 /// int[] <c>segDu</c>, <c>segDv</c>, <c>segRot</c>. A garment without it (sewn before this lane) composes in UV space.
 /// </summary>
 public sealed class WrapLayout
 {
     public const string SleevesContinue = "continue", SleevesSeparate = "separate";
 
+    /// <summary>
+    /// Layout version (lane/wrap-closure). 1 = stacks sewn in 0.1.0-dev.4 (ring closes in the middle of the back, texel owner = first face,
+    /// only arms continue the torso's cloth); 2 = ring closes in a hidden place, head and legs continue the torso's cloth too, texels shared by
+    /// several faces take the coordinates of the most visible one. Tree key <c>wrap</c>; new layouts are 2, a tree stored with 1 keeps its look.
+    /// </summary>
+    public const int CurrentVersion = 2;
+    public int Version = CurrentVersion;
+
     public string Sleeves = "";
     public SegmentPlacement[] Segments = new SegmentPlacement[BodySegments.Count];
 
-    public WrapLayout Clone() => new() { Sleeves = Sleeves, Segments = (SegmentPlacement[])Segments.Clone() };
+    public WrapLayout Clone() => new() { Version = Version, Sleeves = Sleeves, Segments = (SegmentPlacement[])Segments.Clone() };
 
     /// <summary>Sleeves continue the torso (arm segments use the torso's placement and coordinates) for recipe <paramref name="g"/>.</summary>
     public bool Continues(GarmentDef g) => (Sleeves.Length > 0 ? Sleeves : g.Sleeves) != SleevesSeparate;
@@ -48,7 +56,7 @@ public sealed class WrapLayout
 
     public void ToTree(ITreeAttribute tree)
     {
-        tree.SetInt("wrap", 1);
+        tree.SetInt("wrap", Version);
         tree.SetString("sleeves", Sleeves);
         tree["segDu"] = new IntArrayAttribute(Segments.Select(s => s.Du).ToArray());
         tree["segDv"] = new IntArrayAttribute(Segments.Select(s => s.Dv).ToArray());
@@ -58,8 +66,9 @@ public sealed class WrapLayout
     /// <summary>The layout stored in <paramref name="tree"/>, null when it has none (UV-space garment).</summary>
     public static WrapLayout? FromTree(ITreeAttribute? tree)
     {
-        if (tree == null || tree.GetInt("wrap") != 1) return null;
-        var w = new WrapLayout { Sleeves = tree.GetString("sleeves", "") ?? "" };
+        int version = tree?.GetInt("wrap") ?? 0;
+        if (tree == null || version < 1) return null;
+        var w = new WrapLayout { Version = Math.Min(version, CurrentVersion), Sleeves = tree.GetString("sleeves", "") ?? "" };
         if (w.Sleeves != SleevesContinue && w.Sleeves != SleevesSeparate) w.Sleeves = "";
         int[] du = (tree["segDu"] as IntArrayAttribute)?.value ?? Array.Empty<int>();
         int[] dv = (tree["segDv"] as IntArrayAttribute)?.value ?? Array.Empty<int>();
@@ -73,6 +82,7 @@ public sealed class WrapLayout
     public void Mix(Action<int> mixInt)
     {
         mixInt(0x77726170); // "wrap"
+        if (Version >= 2) mixInt(Version); // version 1 hashes as before
         foreach (char c in Sleeves) mixInt(c);
         foreach (var s in Segments) { mixInt(s.Du); mixInt(s.Dv); mixInt(s.Rot); }
     }
@@ -91,6 +101,10 @@ public sealed class WrapLayout
 public sealed class BodyWrapMap
 {
     public readonly int Width, Height;
+    /// <summary>Layout version this map was built for (<see cref="WrapLayout.Version"/>).</summary>
+    public readonly int Version;
+    /// <summary>Version 2: head and legs take the torso's cloth coordinates (false = their own, like layout 1).</summary>
+    public bool JoinFrames { get; private init; } = true;
     /// <summary>Segment of each texel (row-major), -1 = no face (UV-space fallback).</summary>
     public readonly int[] Seg;
     public readonly int[] U, V;
@@ -112,10 +126,11 @@ public sealed class BodyWrapMap
         public int Columns, Rows;
     }
 
-    BodyWrapMap(int w, int h)
+    BodyWrapMap(int w, int h, int version)
     {
         Width = w;
         Height = h;
+        Version = version;
         Seg = new int[w * h];
         U = new int[w * h];
         V = new int[w * h];
@@ -131,7 +146,7 @@ public sealed class BodyWrapMap
     {
         seg = Seg[i];
         if (seg < 0) { u = v = 0; return false; }
-        bool c = continues && BodySegments.IsArm(seg);
+        bool c = (continues && BodySegments.IsArm(seg)) || (Version >= 2 && JoinFrames && BodySegments.IsJoined(seg));
         u = c ? UC[i] : U[i];
         v = c ? VC[i] : V[i];
         return true;
@@ -157,9 +172,16 @@ public sealed class BodyWrapMap
         public double Top => Size.Y;
     }
 
-    public static BodyWrapMap Build(GarmentSurface surf)
+    /// <summary>
+    /// Map of <paramref name="surf"/> for layout <paramref name="version"/>; <paramref name="seams"/> = the recipe's <see cref="GarmentDef.WrapSeam"/>
+    /// (version 2: where a ring closes, by segment code or element name: front, back, left, right, inner, outer); <paramref name="owner"/> = the
+    /// recipe's <see cref="GarmentDef.WrapOwner"/> (version 2: "first" = a shared texel keeps the first face's coordinates), <paramref name="frameMode"/> =
+    /// <see cref="GarmentDef.WrapFrame"/> (version 2: "own" = head and legs keep their own cloth frame, like layout 1).
+    /// </summary>
+    public static BodyWrapMap Build(GarmentSurface surf, int version = 1, IReadOnlyDictionary<string, string>? seams = null, string? owner = null, string? frameMode = null)
     {
-        var map = new BodyWrapMap(surf.Width, surf.Height);
+        var map = new BodyWrapMap(surf.Width, surf.Height, version) { JoinFrames = frameMode != WrapFrameOwn };
+        bool ownerFirst = owner == WrapOwnerFirst;
         var frames = new Frame?[BodySegments.Count];
         for (int s = 0; s < BodySegments.Count; s++)
             frames[s] = surf.Bones.TryGetValue(BodySegments.FrameBones[s], out var b) ? new Frame(b.m, b.size) : null;
@@ -173,25 +195,88 @@ public sealed class BodyWrapMap
             var frame = frames[el.Segment] ?? frames[BodySegments.Torso];
             var torso = frames[BodySegments.Torso] ?? frame;
             if (frame == null || torso == null) continue;
-            UnfoldElement(map, surf, el, grp.ToList(), frame, torso, tpu, faceCoords);
+            UnfoldElement(map, surf, el, grp.ToList(), frame, torso, tpu, faceCoords, seams);
         }
-        // Texel owner: the first face covering it (shared UVs, e.g. mirrored sleeves, move together).
+        // Texel owner (shared UVs, e.g. mirrored sleeves, move together): the first face covering it (version 1); version 2: the most visible
+        // one (front-facing first, FaceWeight), then the first.
+        double midZ = surf.Bones.TryGetValue("UpperTorso", out var tb) ? tb.m[14] + tb.size.Z / 32 : 0.5;
+        var weights = new Dictionary<int, double>();
+        double Weight(int fi)
+        {
+            if (!weights.TryGetValue(fi, out double w))
+            {
+                var sf = surf.Faces[fi];
+                weights[fi] = w = FaceWeight(sf.Normal, sf.C0 + (sf.S + sf.T) * 0.5, midZ);
+            }
+            return w;
+        }
         for (int y = 0; y < surf.Height; y++)
         {
             for (int x = 0; x < surf.Width; x++)
             {
+                int i = y * surf.Width + x, best = -1;
+                double bw = -1;
                 foreach (int f in surf.FacesOf(x, y))
                 {
-                    if (!faceCoords.TryGetValue(f, out var fc) || !fc.TryGetValue(y * surf.Width + x, out var c)) continue;
-                    int i = y * surf.Width + x;
-                    map.Seg[i] = surf.Faces[f].Segment;
-                    map.Face[i] = f;
-                    (map.U[i], map.V[i], map.UC[i], map.VC[i]) = c;
-                    break;
+                    if (!faceCoords.TryGetValue(f, out var fc) || !fc.ContainsKey(i)) continue;
+                    if (version < 2 || ownerFirst) { best = f; break; }
+                    double w = Weight(f);
+                    if (w > bw) { best = f; bw = w; }
                 }
+                if (best < 0) continue;
+                map.Seg[i] = surf.Faces[best].Segment;
+                map.Face[i] = best;
+                (map.U[i], map.V[i], map.UC[i], map.VC[i]) = faceCoords[best][i];
             }
         }
         return map;
+    }
+
+    /// <summary>
+    /// How visible a face is on the dressed seraph (version 2: texel owner; the audit's "visible break" metric): from its outward unit normal and
+    /// centre (mesh space), <paramref name="midZ"/> = lateral centre of the torso. Front-facing 1.0, back / outer side / top 0.3,
+    /// flank between the arms / inner side of a limb 0.1, underside 0.05.
+    /// </summary>
+    public static double FaceWeight(V3 n, V3 c, double midZ)
+    {
+        if (n.Y > 0.6) return 0.3;
+        if (n.Y < -0.6) return 0.05;
+        double front = -n.X, zc = c.Z - midZ;
+        if (front > 0.5) return 1;
+        if (front < -0.5) return 0.3;
+        return Math.Abs(zc) < 0.14 || n.Z * zc < 0 ? 0.1 : 0.3;
+    }
+
+    /// <summary>
+    /// Ring role (0 front, 1 +z = the wearer's left, 2 back, 3 -z = right) where an element's ring closes (version 2): a hidden place. Torso and limbs:
+    /// the inner side (under the arm, inside of the leg; the torso's own centre: its left flank), the head: the back. <paramref name="lat"/> =
+    /// z component (torso frame) of each ring role's normal; <paramref name="word"/> = the recipe's override.
+    /// </summary>
+    public const string WrapFrameTorso = "torso", WrapFrameOwn = "own";
+    public const string WrapOwnerVisible = "visible", WrapOwnerFirst = "first";
+
+    public static readonly string[] SeamWords = { "front", "back", "left", "right", "inner", "outer" };
+
+    static int SeamRole(int segment, string? word, int shiftT, double[] lat)
+    {
+        int Towards(int sign)
+        {
+            int best = 2;
+            double bk = 0.3;
+            for (int k = 1; k < 4; k += 2) if (sign * lat[k] > bk) { best = k; bk = sign * lat[k]; }
+            return best;
+        }
+        int Inner() => Math.Abs(shiftT) > 2 ? Towards(shiftT > 0 ? -1 : 1) : Towards(1);
+        return word switch
+        {
+            "front" => 0,
+            "back" => 2,
+            "left" => Towards(1),
+            "right" => Towards(-1),
+            "inner" => Inner(),
+            "outer" => Math.Abs(shiftT) > 2 ? Towards(shiftT > 0 ? 1 : -1) : Towards(-1),
+            _ => segment == BodySegments.Head ? 2 : Inner(),
+        };
     }
 
     /// <summary>Texture axis + sign of mesh-space direction <paramref name="dir"/> on face <paramref name="f"/>.</summary>
@@ -207,7 +292,7 @@ public sealed class BodyWrapMap
     static int Raw(int x, int y, (bool alongX, int sign) a) => a.sign * (a.alongX ? x : y);
 
     static void UnfoldElement(BodyWrapMap map, GarmentSurface surf, SurfaceElement el, List<SurfaceFace> faces, Frame frame, Frame torso,
-        double tpu, Dictionary<int, Dictionary<int, (int, int, int, int)>> outCoords)
+        double tpu, Dictionary<int, Dictionary<int, (int, int, int, int)>> outCoords, IReadOnlyDictionary<string, string>? seams)
     {
         // Element-local axes closest to the segment's up and front (a tilted flap keeps its own box frame).
         V3 InSeg(V3 a) => frame.Dir(V3.Dir(el.Matrix, a)).Normalized;
@@ -287,7 +372,7 @@ public sealed class BodyWrapMap
         int frontRows = (int)Math.Round(Len(up) * tpu);
         int perimeter = widths.Sum();
         int c = widths[0] / 2;
-        int split = widths[0] + widths[1] + widths[2] / 2;
+        int split = widths[0] + widths[1] + widths[2] / 2; // version 1: the ring closes in the middle of the back face
 
         // Alignment within the segment: front-centre lateral position and top, in cells, in the segment's frame and the torso's.
         var centreLocal = el.Size * 0.5;
@@ -301,6 +386,16 @@ public sealed class BodyWrapMap
         }
         var (shiftS, vTopS) = Align(frame);
         var (shiftT, vTopT) = Align(torso);
+        if (map.Version >= 2)
+        {
+            string? word = null;
+            if (seams != null && (seams.TryGetValue(el.Name, out word) || seams.TryGetValue(BodySegments.Codes[el.Segment], out word))) { }
+            var lat = ringNormal.Select(n => torso.Dir(MeshDir(n)).Z).ToArray();
+            int role = SeamRole(el.Segment, word, shiftT, lat);
+            // middle of the face; a face narrower than 4 texels closes at its end towards the back (a thin strap would otherwise tear at its front edge)
+            int before = widths.Take(role).Sum();
+            split = widths[role] >= 4 ? before + widths[role] / 2 : role == 3 ? before : before + widths[role];
+        }
 
         foreach (var f in faces)
         {
@@ -371,9 +466,11 @@ public static class BodyWrapCache
         }
     });
 
-    public static BodyWrapMap? Map(ICoreAPI api, GarmentDef def) => Cache(api).GetOrAdd(def.Code, _ => Surface(api, def) is { } s ? BodyWrapMap.Build(s) : null);
+    /// <summary>Map of the recipe for layout <paramref name="version"/> (<see cref="WrapLayout.Version"/>; default the current one).</summary>
+    public static BodyWrapMap? Map(ICoreAPI api, GarmentDef def, int version = WrapLayout.CurrentVersion)
+        => Cache(api).GetOrAdd(def.Code + "#" + version, _ => Surface(api, def) is { } s ? BodyWrapMap.Build(s, version, def.WrapSeam, def.WrapOwner, def.WrapFrame) : null);
 
     /// <summary>Composition input for <paramref name="layout"/> (null = UV space: no layout, or the map failed).</summary>
     public static BodyWrap? For(ICoreAPI? api, GarmentDef def, WrapLayout? layout)
-        => api == null || layout == null || Map(api, def) is not { } m ? null : new BodyWrap(m, layout);
+        => api == null || layout == null || Map(api, def, layout.Version) is not { } m ? null : new BodyWrap(m, layout);
 }
