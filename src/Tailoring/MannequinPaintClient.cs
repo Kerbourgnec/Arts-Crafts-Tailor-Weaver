@@ -89,8 +89,8 @@ public class MannequinPaintClient : ModSystem
         {
             var slot = capi.World.Player?.InventoryManager?.ActiveHotbarSlot;
             var tool = BEBehaviorMannequinTailoring.ToolOf(capi, slot);
-            if (tool == FlowTool.Material) parts = DrapeFlow.GhostParts(g, be.MaterialInSlot, be.Session.IsOn, TailorMaterials.Read(capi, slot!.Itemstack));
-            else if (tool == FlowTool.Empty && Sneaking) parts = DrapeFlow.ToggleGhostParts(g, be.MaterialInSlot, be.Session.IsOn);
+            if (tool == FlowTool.Material) parts = DrapeFlow.GhostParts(g, be.MaterialInSlot, be.PartOn, TailorMaterials.Read(capi, slot!.Itemstack));
+            else if (tool == FlowTool.Empty && Sneaking) parts = DrapeFlow.ToggleGhostParts(g, be.MaterialInSlot, be.PartOn);
         }
         if (ghostOn != null && ghostOn != be) ghostOn.SetGhost(null);
         be?.SetGhost(parts);

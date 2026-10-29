@@ -24,7 +24,7 @@
 		{ code: "sleeve-right", regions: [[4, 67, 24, 101], [8, 101, 9, 104], [23, 101, 24, 104], [4, 104, 14, 109], [18, 104, 24, 109]], materials: ["cloth"] },
 		{ code: "sleeve-left", regions: [[26, 67, 46, 101], [26, 101, 27, 104], [41, 101, 42, 104], [26, 104, 32, 109], [36, 104, 46, 109]], materials: ["cloth"] },
 		// Goreum tie: left empty, the front strips are not part of the model.
-		{ code: "goreum", regions: [[54, 11, 55, 31]], materials: ["cloth"], optional: true, elements: ["Cube2", "Cube3"] }
+		{ code: "goreum", regions: [[54, 11, 55, 31]], materials: ["cloth"], elements: ["Cube2", "Cube3"], options: [{ code: "none" }, { code: "goreum" }] }
 	],
 	// Inner "Blackout" box (seen through the neck opening): dark lining.
 	fixed: [ { rect: [0, 0, 10, 10], color: "#1c1611" } ],

@@ -20,7 +20,7 @@
 		// Neck trim (vanilla element hidecollar): cloth or a pelt (fur collar).
 		{ code: "trim", regions: [[26, 5, 50, 9]], materials: ["cloth", "pelt"] },
 		// Buttons: bone, wood or metal; left empty, the button cuboids are not part of the model.
-		{ code: "buttons", regions: [[26, 0, 29, 1]], materials: ["wood", "metal", "bone"], optional: true, elements: ["vestbutton1", "vestbutton2", "vestbutton3"] }
+		{ code: "buttons", regions: [[26, 0, 29, 1]], materials: ["wood", "metal", "bone"], elements: ["vestbutton1", "vestbutton2", "vestbutton3"], options: [{ code: "none" }, { code: "buttons" }] }
 	],
 	// Inner "Blackout" box of the coat shape (seen through the neck opening): dark lining.
 	fixed: [ { rect: [0, 0, 10, 10], color: "#1c1611" } ],

@@ -221,7 +221,7 @@ public static class GarmentLayout
 
     /// <summary>
     /// Layer order (composition stage 1): per texel, the highest-layer covering part that is <paramref name="present"/>;
-    /// an absent part (an empty optional one) lets the layer below show through. -1 = no present part.
+    /// an absent part (a part that may be left off and is still empty) lets the layer below show through. -1 = no present part.
     /// </summary>
     public static int[] VisibleOwners(GarmentDef g, System.Func<int, bool> present)
     {
@@ -242,7 +242,7 @@ public static class GarmentLayout
     }
 
     /// <summary>A part is present in the composed texture when filled, required (grey while empty, preview) or fixed.</summary>
-    public static bool Present(GarmentDef g, int part, SlotMaterial? material) => material != null || !g.Parts[part].Optional || g.Parts[part].IsFixed;
+    public static bool Present(GarmentDef g, int part, SlotMaterial? material) => material != null || !g.Parts[part].HasNone || g.Parts[part].IsFixed;
 
     /// <summary>Top-left of the part's bounding box: the pattern's (0,0) cell sits there at offset 0.</summary>
     public static (int x, int y) PartOrigin(GarmentDef g, int part)
@@ -362,7 +362,7 @@ public static class GarmentLayout
     /// <summary>
     /// Garment texture, 0xAARRGGBB row-major (BakedBitmap layout), as a pipeline (lane/garment-layers):
     /// 1. layer order (<see cref="VisibleOwners"/>): each texel shows the highest-layer part covering it that is present
-    ///    (filled, required or fixed); an empty optional overlay shows the layer below (pants → suspenders → buttons);
+    ///    (filled, required or fixed); an empty overlay that may be left off shows the layer below (pants → suspenders → buttons);
     /// 2. materials (<see cref="PaintLayers"/>): base parts and overlays alike. Texels without a part take their
     ///    <see cref="GarmentDef.Fixed"/> colour, else stay transparent. <paramref name="materialOf"/> gives a part's
     ///    material (null = empty: translucent grey on a required part, preview). Patterned cloth samples the pattern (offset

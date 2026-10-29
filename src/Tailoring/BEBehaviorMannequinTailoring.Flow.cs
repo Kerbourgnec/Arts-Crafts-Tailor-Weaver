@@ -29,18 +29,31 @@ public partial class BEBehaviorMannequinTailoring
         return FlowTool.None;
     }
 
+    /// <summary>
+    /// Whether part <paramref name="p"/> is switched on: the session's option is not none (a part that cannot be left off
+    /// is always on). Ghost parts are not: <see cref="Garment"/> shows them, the session does not.
+    /// </summary>
+    public bool PartOn(int p)
+    {
+        var b = GarmentBase;
+        var c = Session.Choice;
+        if (b == null || p < 0 || p >= b.Parts.Length) return false;
+        int none = b.Parts[p].NoneIndex;
+        return none < 0 || p >= c.Length || c[p] != none;
+    }
+
     /// <summary>Whether part <paramref name="p"/>'s elements show (filled, required, switched on, or ghost of the held item).</summary>
     public bool PartShown(int p)
     {
         var g = Garment;
         if (g == null || p < 0 || p >= g.Parts.Length) return false;
-        return DrapeFlow.Shown(g.Parts[p], MaterialInSlot(p), Session.IsOn(p), p < ghostParts.Length && ghostParts[p]);
+        return DrapeFlow.Shown(g.Parts[p], MaterialInSlot(p), PartOn(p), p < ghostParts.Length && ghostParts[p]);
     }
 
     public PartState PartStateOf(int p) => Garment is { } g && p >= 0 && p < g.Parts.Length
-        ? DrapeFlow.State(g, p, MaterialInSlot, Session.IsCut, Session.IsOn) : PartState.Off;
+        ? DrapeFlow.State(g, p, MaterialInSlot, Session.IsCut, PartOn) : PartState.Off;
 
-    public (string key, int part)? SewProblem() => DrapeFlow.SewProblem(Garment, MaterialInSlot, Session.IsCut, Session.IsOn);
+    public (string key, int part)? SewProblem() => DrapeFlow.SewProblem(Garment, MaterialInSlot, Session.IsCut, PartOn);
 
     /// <summary>Segments whose cloth is cut (placement locked).</summary>
     public bool[] LockedSegments()
@@ -125,7 +138,7 @@ public partial class BEBehaviorMannequinTailoring
         int total = states.Count(s => s != PartState.Off && s != PartState.Fixed);
         int ready = states.Count(s => s is PartState.Cut or PartState.Attached);
         dsc.AppendLine(L("tailoring-flow-info-ready", ready, total));
-        var (key, parts) = DrapeFlow.NextAction(g, MaterialInSlot, Session.IsCut, Session.IsOn);
+        var (key, parts) = DrapeFlow.NextAction(g, MaterialInSlot, Session.IsCut, PartOn);
         dsc.AppendLine(L(key, string.Join(", ", parts.Select(p => L("part-" + g.Parts[p].Code)))));
         var off = Enumerable.Range(0, states.Length).Where(p => states[p] == PartState.Off).ToArray();
         if (off.Length > 0) dsc.AppendLine(L("tailoring-flow-info-off", string.Join(", ", off.Select(p => L("part-" + g.Parts[p].Code)))));
@@ -135,7 +148,15 @@ public partial class BEBehaviorMannequinTailoring
 
     void OnSlotModifiedServer(int slot)
     {
-        if (slot >= 0 && slot < inventory.Count && inventory[slot].Empty && Session.SetCut(slot, false)) Blockentity.MarkDirty(true);
+        if (slot < 0 || slot >= inventory.Count) return;
+        if (inventory[slot].Empty)
+        {
+            if (Session.SetCut(slot, false)) Blockentity.MarkDirty(true);
+            return;
+        }
+        // A material in the slot of a part left off (none) puts the part on: its first present option (owner 2026-10-29).
+        if (GarmentBase is { } b && slot < b.Parts.Length && b.Parts[slot].HasNone && !PartOn(slot) && Session.SetOption(b, slot, b.Parts[slot].FirstPresent))
+            Blockentity.MarkDirty(true);
     }
 
     bool PlacementAllowed(IPlayer player, int part, int seg)
@@ -214,34 +235,36 @@ public partial class BEBehaviorMannequinTailoring
         if (g == null) { Fail(player, "tailor-err-nogarment"); return; }
         if (part < 0 || part >= g.Parts.Length || option < 0 || option >= g.Parts[part].Options.Length) return;
         if (Session.IsCut(part)) { Fail(player, "tailoring-flow-locked-option", PartName(part)); return; }
+        // None leaves the part off: whatever lies in its slot goes back to the player (never a cut one, refused above).
+        if (option == g.Parts[part].NoneIndex) GiveBackSlot(player, part);
         if (Session.SetOption(g, part, option)) Blockentity.MarkDirty(true);
     }
 
-    /// <summary>Sneak + empty hand on an optional part: take its material back, or switch it on / off.</summary>
+    /// <summary>The material of sewing slot <paramref name="part"/> back to the player (ground when full), the slot uncut.</summary>
+    void GiveBackSlot(IPlayer player, int part)
+    {
+        if (inventory[part].Empty) return;
+        var stack = inventory[part].TakeOutWhole();
+        inventory[part].MarkDirty();
+        if (stack != null && !player.InventoryManager.TryGiveItemstack(stack, true)) Api.World.SpawnItemEntity(stack, Pos.ToVec3d().Add(0.5, 1, 0.5));
+        Session.SetCut(part, false);
+    }
+
+    /// <summary>
+    /// Sneak + empty hand on a part that may be left off: take its material back (part left off), or switch it on (first
+    /// present option) / off (none). Refused while the part is cut, like any option change.
+    /// </summary>
     void OnTogglePart(IPlayer player, int part)
     {
         var g = Garment;
         if (g == null || part < 0 || part >= g.Parts.Length) return;
         if (!player.InventoryManager.ActiveHotbarSlot.Empty) return;
-        switch (DrapeFlow.Toggle(g.Parts[part], MaterialInSlot(part), Session.IsOn(part)))
-        {
-            case ToggleAction.Refuse:
-                Fail(player, "tailoring-flow-toggle-required", PartName(part));
-                return;
-            case ToggleAction.TakeOut:
-                var stack = inventory[part].TakeOutWhole();
-                inventory[part].MarkDirty();
-                if (stack != null && !player.InventoryManager.TryGiveItemstack(stack, true)) Api.World.SpawnItemEntity(stack, Pos.ToVec3d().Add(0.5, 1, 0.5));
-                Session.SetCut(part, false);
-                Session.SetOn(part, false);
-                break;
-            case ToggleAction.SwitchOn:
-                Session.SetOn(part, true);
-                break;
-            case ToggleAction.SwitchOff:
-                Session.SetOn(part, false);
-                break;
-        }
+        var action = DrapeFlow.Toggle(g.Parts[part], MaterialInSlot(part), PartOn(part));
+        if (action == ToggleAction.Refuse) { Fail(player, "tailoring-flow-toggle-required", PartName(part)); return; }
+        if (Session.IsCut(part)) { Fail(player, "tailoring-flow-locked-option", PartName(part)); return; }
+        var def = GarmentBase!.Parts[part];
+        if (action != ToggleAction.SwitchOn) GiveBackSlot(player, part); // take out / switch off: nothing stays in a part left off
+        Session.SetOption(GarmentBase!, part, action == ToggleAction.SwitchOn ? def.FirstPresent : def.NoneIndex);
         Blockentity.MarkDirty(true);
     }
 

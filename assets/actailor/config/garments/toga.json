@@ -21,7 +21,7 @@
 	textureHeight: 168,
 	parts: [
 		// Brooch first: owns its texels (free, right of the shirt layout).
-		{ code: "fibula", regions: [[56, 0, 58, 2]], materials: ["metal", "bone"], optional: true, elements: ["togafibula"] },
+		{ code: "fibula", regions: [[56, 0, 58, 2]], materials: ["metal", "bone"], elements: ["togafibula"], options: [{ code: "none" }, { code: "fibula" }] },
 		// The whole drape: torso, left sleeve, neck, skirt panels and waist. Woven or vanilla cloth.
 		{ code: "drape", regions: [[12, 1, 24, 11], [26, 5, 50, 9], [2, 11, 46, 31], [0, 63, 12, 73], [38, 63, 50, 73], [26, 67, 30, 73],
 			[32, 68, 36, 74], [26, 74, 46, 88], [28, 88, 40, 98], [4, 96, 13, 98], [67, 96, 76, 98], [2, 98, 15, 126], [18, 98, 62, 102],

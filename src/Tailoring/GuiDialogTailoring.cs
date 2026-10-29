@@ -174,7 +174,7 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
         {
             int part = i;
             var def = g!.Parts[i];
-            string label = L("part-" + def.Code) + (def.Optional ? " " + L("tailoring-gui-optional") : def.IsFixed ? " " + L("tailoring-gui-fixed") : "");
+            string label = L("part-" + def.Code) + (def.IsNone ? " " + L("tailoring-gui-optional") : def.IsFixed ? " " + L("tailoring-gui-fixed") : "");
             // A fixed (premade) part has no sewing slot: it always shows the recipe's texture.
             if (!def.IsFixed) c.AddItemSlotGrid(Inventory, DoSendPacket, 1, new[] { i }, partRows[i].slot, "slot" + i);
             c.AddFitButton(label, () => { OnSelectPiece(part); return true; }, partRows[i].button);
@@ -218,7 +218,7 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
         foreach (int part in g.ChoosableParts)
         {
             var def = g.Parts[part];
-            string label = L("tailoring-gui-option-of", L("part-" + def.Code)) + (def.Optional ? " " + L("tailoring-gui-optional") : "");
+            string label = L("tailoring-gui-option-of", L("part-" + def.Code));
             string[] names = Enumerable.Range(0, def.Options.Length).Select(k => L(def.OptionName(k))).ToArray();
             var (bounds, nrows) = GuiFit.Flow(names, x0, y + height, maxW, 60, RowPitch);
             LogFit("option-label-" + def.Code, label, PartColW - 6, CairoFont.WhiteSmallText());
@@ -311,7 +311,7 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
             piece = def.IsFixed
                 ? L("tailoring-gui-piece-fixed", L("part-" + def.Code))
                 : m == null
-                ? L("tailoring-gui-piece-empty", name, L(def.Optional ? "tailoring-gui-optional" : "tailoring-gui-required"))
+                ? L("tailoring-gui-piece-empty", name, L(def.IsNone ? "tailoring-gui-optional" : "tailoring-gui-required"))
                 : m.IsPatterned
                     ? L("tailoring-gui-piece", name, a.Dx, a.Dy, a.Rot * 90)
                     : L("tailoring-gui-piece-material", name, KindName(m.Kind), a.Rot * 90);
@@ -327,8 +327,8 @@ public partial class GuiDialogTailoring : GuiDialogBlockEntity
         {
             sb.AppendLine(L("tailoring-gui-garment", L("garment-" + g.Code)));
             int filled = Enumerable.Range(0, g.Parts.Length).Count(p => !g.Parts[p].IsFixed && host.MaterialInSlot(p) != null);
-            int required = g.Parts.Count(p => !p.Optional && !p.IsFixed);
-            int requiredFilled = Enumerable.Range(0, g.Parts.Length).Count(p => !g.Parts[p].Optional && !g.Parts[p].IsFixed && host.MaterialInSlot(p) != null);
+            int required = g.Parts.Count(p => !p.IsNone && !p.IsFixed);
+            int requiredFilled = Enumerable.Range(0, g.Parts.Length).Count(p => !g.Parts[p].IsNone && !g.Parts[p].IsFixed && host.MaterialInSlot(p) != null);
             sb.AppendLine(L("tailoring-gui-filled", requiredFilled, required, filled));
             string? problem = host.CutProblem();
             sb.AppendLine(problem == null ? L(host.WillDress(g) ? "tailoring-gui-ready" : "tailoring-gui-readytoplayer") : L(problem));

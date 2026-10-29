@@ -40,25 +40,14 @@ public sealed class TailoringSession
     /// its slot is filled with a textile; the host clears it when the slot empties. Reset with the garment.
     /// </summary>
     public bool[] PartCut { get; private set; } = Array.Empty<bool>();
-    /// <summary>In-world flow: optional part i switched on while empty (shown as ghost, waits to be draped). Reset with the garment.</summary>
-    public bool[] PartOn { get; private set; } = Array.Empty<bool>();
 
     public bool IsCut(int part) => part >= 0 && part < PartCut.Length && PartCut[part];
-    public bool IsOn(int part) => part >= 0 && part < PartOn.Length && PartOn[part];
 
     /// <summary>Sets part <paramref name="part"/>'s cut flag; false when unchanged or no such part.</summary>
     public bool SetCut(int part, bool cut)
     {
         if (part < 0 || part >= PartCut.Length || PartCut[part] == cut) return false;
         PartCut[part] = cut;
-        return true;
-    }
-
-    /// <summary>Sets part <paramref name="part"/>'s "on" flag; false when unchanged or no such part.</summary>
-    public bool SetOn(int part, bool on)
-    {
-        if (part < 0 || part >= PartOn.Length || PartOn[part] == on) return false;
-        PartOn[part] = on;
         return true;
     }
 
@@ -112,7 +101,6 @@ public sealed class TailoringSession
         Pieces = (g?.Parts ?? Array.Empty<PartDef>()).Select(_ => new PieceAssignment(-1)).ToArray();
         Choice = g?.Root.Choice.ToArray() ?? Array.Empty<int>();
         PartCut = new bool[Pieces.Length];
-        PartOn = new bool[Pieces.Length];
         return true;
     }
 
@@ -125,8 +113,9 @@ public sealed class TailoringSession
     }
 
     /// <summary>
-    /// Chooses option <paramref name="option"/> of part <paramref name="part"/> (lane/modular-parts). False (unchanged) for a part
-    /// without that option, no garment, or the same choice. The host refuses it while the part is cut (placement locked).
+    /// Chooses option <paramref name="option"/> of part <paramref name="part"/> (lane/modular-parts; the none option leaves the part
+    /// off, owner 2026-10-29). False (unchanged) for a part without that option, no garment, or the same choice. The host refuses
+    /// it while the part is cut (placement locked) and gives the material of a part set to none back.
     /// </summary>
     public bool SetOption(GarmentDef g, int part, int option)
     {
@@ -146,7 +135,6 @@ public sealed class TailoringSession
         GarmentCode = "";
         Pieces = Array.Empty<PieceAssignment>();
         PartCut = Array.Empty<bool>();
-        PartOn = Array.Empty<bool>();
     }
 
     /// <summary>Whether sewing slot <paramref name="part"/> may hold <paramref name="m"/> for garment <paramref name="g"/>.</summary>
@@ -166,7 +154,7 @@ public sealed class TailoringSession
             var m = materialOf(p);
             if (m == null)
             {
-                if (!g.Parts[p].Optional) return "tailor-err-partempty";
+                if (!g.Parts[p].IsNone) return "tailor-err-partempty"; // none = the part is left off, needs nothing; any other option = the part present
                 continue;
             }
             if (!g.Parts[p].Allows(m)) return "tailor-err-material";
@@ -179,7 +167,7 @@ public sealed class TailoringSession
         => Enumerable.Range(0, g.Parts.Length).Where(p => !g.Parts[p].IsFixed && materialOf(p) != null).ToArray();
 
     /// <summary>
-    /// Garment data of a cut: one material entry per filled part (part order); empty optional parts get -1. Item
+    /// Garment data of a cut: one material entry per filled part (part order); parts left off (none) get -1. Item
     /// materials (not patterned) keep only their turn (no pattern offset).
     /// </summary>
     /// <param name="g">The recipe resolved for the session's choice (<see cref="GarmentDef.Resolve"/>): the options go onto the garment.</param>
@@ -201,6 +189,7 @@ public sealed class TailoringSession
             int i = data.Materials.Count - 1;
             data.Pieces[p] = m.IsPatterned ? new PieceAssignment(i, a.Dx, a.Dy, a.Rot) : new PieceAssignment(i, 0, 0, a.Rot);
         }
+        if (g.HasOptions) data.Choice = data.ChoiceFor(g); // a part that may be left off is present exactly when it has a material
         if (embroidery != null) data.Embroidery = GarmentEmbroidery.Prune(embroidery, GarmentEmbroidery.Mask(g, materialOf));
         return data;
     }
@@ -215,7 +204,6 @@ public sealed class TailoringSession
         Wrap.ToTree(tree); // lane/body-wrap
         tree["partOption"] = new IntArrayAttribute(Choice.ToArray());
         tree["partCut"] = new IntArrayAttribute(PartCut.Select(c => c ? 1 : 0).ToArray()); // lane/drape-cut-sew
-        tree["partOn"] = new IntArrayAttribute(PartOn.Select(c => c ? 1 : 0).ToArray());
         if (Charged.Count > 0) tree["embCharged"] = new StringArrayAttribute(Charged.OrderBy(c => c, StringComparer.Ordinal).ToArray());
         Drafts.ToTree(tree); // lane/sewing-polish: pending stitches (tree "embDrafts")
     }
@@ -240,7 +228,6 @@ public sealed class TailoringSession
             return Enumerable.Range(0, Pieces.Length).Select(i => i < v.Length && v[i] != 0).ToArray(); // older saves: none
         }
         PartCut = Flags("partCut");
-        PartOn = Flags("partOn");
         int[] opt = (tree["partOption"] as IntArrayAttribute)?.value ?? Array.Empty<int>(); // older saves: first options
         Choice = g != null ? g.NormalizeChoice(opt) : opt.ToArray();
         // Stitches: checked against the garment texture size when the recipe is known (other size = recipe changed → dropped).

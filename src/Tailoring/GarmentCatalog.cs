@@ -18,14 +18,17 @@ public class PartOption
     [JsonProperty("code")] public string Code = "";
     /// <summary>Lang key (without domain) of the option's name; default <c>part-{part}-{option}</c>.</summary>
     [JsonProperty("name")] public string? Name;
-    /// <summary>Texel regions of this variant on the garment texture (half-open); required.</summary>
-    [JsonProperty("regions")] public int[][] Regions = System.Array.Empty<int[]>();
+    /// <summary>
+    /// Texel regions of this variant on the garment texture (half-open). Omitted = the part's own (filled in at load); the
+    /// <see cref="PartDef.NoneCode"/> option never inherits: it has none.
+    /// </summary>
+    [JsonProperty("regions")] public int[][]? Regions;
     /// <summary>Mask / layer / shading: omitted = the part's own value (filled in at load).</summary>
     [JsonProperty("mask")] public int[][]? Mask;
     [JsonProperty("layer")] public int? Layer;
     [JsonProperty("shade")] public bool? Shade;
     [JsonProperty("highlight")] public bool? Highlight;
-    /// <summary>Shape elements of this variant (children go with them): shown only while it is chosen (an optional part: and filled).</summary>
+    /// <summary>Shape elements of this variant (children go with them): shown only while it is chosen. Omitted = the part's own (none: no elements).</summary>
     [JsonProperty("elements")] public string[]? Elements;
 }
 
@@ -44,14 +47,34 @@ public class PartDef
     /// <summary>Resolved copy only: index of the option these fields come from (-1 = plain part).</summary>
     [JsonIgnore] public int Chosen = -1;
     public PartDef Copy() => (PartDef)MemberwiseClone();
-    /// <summary>Lang key (without domain) of option <paramref name="k"/>.</summary>
-    public string OptionName(int k) => Options[k].Name ?? $"part-{Code}-{Options[k].Code}";
+
+    /// <summary>
+    /// Option code of "this part is left off" (owner 2026-10-29): no regions, no elements, no material, nothing rendered.
+    /// A part that may be left off lists it first (the garment starts without it); every other option is the part present.
+    /// </summary>
+    public const string NoneCode = "none";
+    /// <summary>Generic lang key (without domain) of the none option's name.</summary>
+    public const string NoneNameKey = "part-option-none";
+    /// <summary>Index of the none option, -1 = the part cannot be left off (also for a plain part).</summary>
+    public int NoneIndex => System.Array.FindIndex(Options, o => o.Code == NoneCode);
+    /// <summary>The part may be left off (it lists a none option).</summary>
+    public bool HasNone => NoneIndex >= 0;
+    /// <summary>Resolved copy only: the none option is chosen, the part is left off.</summary>
+    public bool IsNone => Chosen >= 0 && Options[Chosen].Code == NoneCode;
+    /// <summary>Index of the first option that is not none (the part present), -1 = none.</summary>
+    public int FirstPresent => System.Array.FindIndex(Options, o => o.Code != NoneCode);
+    /// <summary>
+    /// Lang key (without domain) of option <paramref name="k"/>: <see cref="NoneNameKey"/> for none, <c>part-{part}</c> for the
+    /// option named like the part (the part present), else <c>part-{part}-{option}</c>.
+    /// </summary>
+    public string OptionName(int k) => Options[k].Name
+        ?? (Options[k].Code == NoneCode ? NoneNameKey : Options[k].Code == Code ? "part-" + Code : $"part-{Code}-{Options[k].Code}");
     /// <summary>This part with option <paramref name="k"/>'s regions, mask, layer, shading and elements (options are complete after load).</summary>
     public PartDef WithOption(int k)
     {
         var o = Options[k];
         var c = Copy();
-        c.Regions = o.Regions;
+        c.Regions = o.Regions ?? System.Array.Empty<int[]>();
         c.Mask = o.Mask;
         c.Layer = o.Layer ?? Layer;
         c.Shade = o.Shade ?? Shade;
@@ -70,9 +93,7 @@ public class PartDef
     /// config/tailoring-materials.json. Omitted = cloth only.
     /// </summary>
     [JsonProperty("materials")] public string[] Materials = { MaterialKind.Cloth };
-    /// <summary>Optional part: the garment can be sewn without it; its <see cref="Elements"/> are then removed from the model.</summary>
-    [JsonProperty("optional")] public bool Optional;
-    /// <summary>Shape elements (by name, children go with them) that belong to this part: hidden while it is empty.</summary>
+    /// <summary>Shape elements (by name, children go with them) of a part without options; a part with options lists them per option.</summary>
     [JsonProperty("elements")] public string[] Elements = System.Array.Empty<string>();
 
     /// <summary>
@@ -84,7 +105,7 @@ public class PartDef
     /// <summary>
     /// Premade part (lane/garment-families), e.g. a brass buckle: texture asset (like a material texture, without
     /// <c>textures/</c> and <c>.png</c>) the part always shows, tiled 1:1. A fixed part has no sewing slot, takes no
-    /// material, is never optional and always rendered; <see cref="Materials"/> is ignored.
+    /// material, has no options and is always rendered; <see cref="Materials"/> is ignored.
     /// </summary>
     [JsonProperty("fixedTexture")] public string? FixedTexture;
     /// <summary>Texel rectangle [x1, y1, x2, y2] of <see cref="FixedTexture"/> tiled under the part; null = the whole texture.</summary>
@@ -94,7 +115,7 @@ public class PartDef
 
     /// <summary>
     /// Layer (lane/garment-layers, default 0 = base): a texel covered by parts of several layers shows the highest
-    /// layer whose part is present (filled, required or fixed); an EMPTY optional part shows the layer below
+    /// layer whose part is present (filled, required or fixed); a part that may be left off and is still empty shows the layer below
     /// (pants → suspenders → buttons). Within one layer the first listed part owns shared texels (as before layers).
     /// </summary>
     [JsonProperty("layer")] public int Layer;
@@ -257,6 +278,13 @@ public class GarmentDef
         });
     }
 
+    /// <summary>
+    /// This recipe with every part that may be left off present, as its first present option (the other choices kept): the
+    /// geometry of "everything sewn" (selftest, tooling; the client's ghost preview resolves single parts alike).
+    /// </summary>
+    public GarmentDef AllPresent()
+        => Resolve(Choice.Select((c, p) => Parts[p].HasNone && Parts[p].IsNone ? Parts[p].FirstPresent : c).ToArray());
+
     /// <summary>Every choice of this recipe (the cartesian product of the parts' options); one all-default choice when it has none.</summary>
     public IEnumerable<int[]> AllChoices()
     {
@@ -295,19 +323,11 @@ public class GarmentDef
     public bool IsItem(string itemCode) => Item == itemCode || System.Array.IndexOf(LegacyItems, itemCode) >= 0;
 
     /// <summary>
-    /// Elements removed from the model: <see cref="HideElements"/> plus the elements of every optional part that is
-    /// empty (<paramref name="filled"/> by part index). Required parts always show (grey while empty, preview only).
+    /// Elements removed from the model: <see cref="HideElements"/> plus the elements of the options not chosen (a part left
+    /// off = its none option chosen: every other option's elements). Parts present always show (grey while empty, preview only).
     /// </summary>
-    public string[] HiddenElements(System.Func<int, bool> filled)
-    {
-        var list = new List<string>(HideElements);
-        list.AddRange(UnchosenElements()); // lane/modular-parts
-        for (int p = 0; p < Parts.Length; p++)
-        {
-            if (Parts[p].Optional && !filled(p)) list.AddRange(Parts[p].Elements);
-        }
-        return list.Distinct().ToArray();
-    }
+    public string[] HiddenElements()
+        => HideElements.Concat(UnchosenElements()).Distinct().ToArray();
 }
 
 public class GarmentCatalog
@@ -339,14 +359,15 @@ public class GarmentCatalog
             p.Materials ??= new[] { MaterialKind.Cloth };
             p.Elements ??= System.Array.Empty<string>();
             p.Options ??= System.Array.Empty<PartOption>();
-            foreach (var o in p.Options) // options complete: omitted fields = the part's
+            foreach (var o in p.Options) // options complete: omitted fields = the part's (none: nothing)
             {
-                o.Regions ??= System.Array.Empty<int[]>();
-                o.Mask ??= p.Mask;
+                bool none = o.Code == PartDef.NoneCode;
+                o.Regions ??= none ? System.Array.Empty<int[]>() : p.Regions;
+                o.Mask ??= none ? null : p.Mask;
                 o.Layer ??= p.Layer;
                 o.Shade ??= p.Shade;
                 o.Highlight ??= p.Highlight;
-                o.Elements ??= System.Array.Empty<string>();
+                o.Elements ??= none ? System.Array.Empty<string>() : p.Elements;
             }
         }
         // The catalog def shows the first option of every part with options (so every consumer of the plain def, items, scripts, old stacks, is unchanged).
@@ -385,7 +406,7 @@ public class GarmentCatalog
             if (g.TextureWidth <= 0 || g.TextureHeight <= 0) yield return g.Code + ": texture size";
             if (g.Parts.Length == 0) yield return g.Code + ": no parts";
             if (g.Parts.Length > TailoringSession.MaxParts) yield return $"{g.Code}: {g.Parts.Length} parts (max {TailoringSession.MaxParts})";
-            if (g.Parts.All(p => p.Optional || p.IsFixed)) yield return g.Code + ": no required part to sew (every part optional or fixed)";
+            if (g.Parts.All(p => p.HasNone || p.IsFixed)) yield return g.Code + ": no required part to sew (every part may be left off, or is fixed)";
             if (g.Warmth < 0) yield return g.Code + ": negative warmth";
             foreach (string b in g.Bare.Where(b => !GarmentDef.BareBones.ContainsKey(b))) yield return $"{g.Code}: bare '{b}' ({string.Join(", ", GarmentDef.BareBones.Keys)})";
             foreach (var f in g.Fixed)
@@ -406,9 +427,13 @@ public class GarmentCatalog
                     if (p.IsFixed) yield return $"{g.Code}/{p.Code}: a fixed part cannot have options";
                     foreach (var dup in p.Options.GroupBy(o => o.Code).Where(x => x.Count() > 1)) yield return $"{g.Code}/{p.Code}: duplicate option code '{dup.Key}'";
                     foreach (var o in p.Options.Where(o => o.Code.Length == 0)) yield return $"{g.Code}/{p.Code}: option without code";
+                    if (p.HasNone && p.FirstPresent < 0) yield return $"{g.Code}/{p.Code}: only a none option (the part is never present)";
+                    foreach (var o in p.Options.Where(o => o.Code == PartDef.NoneCode && ((o.Regions?.Length ?? 0) > 0 || (o.Elements?.Length ?? 0) > 0 || (o.Mask?.Length ?? 0) > 0)))
+                        yield return $"{g.Code}/{p.Code}[none]: the none option has no regions, mask or elements";
                 }
                 for (int k = 0; k < System.Math.Max(1, p.Options.Length); k++)
                 {
+                    if (p.Options.Length > 0 && p.Options[k].Code == PartDef.NoneCode) continue; // left off: nothing to check
                     var v = p.Options.Length == 0 ? p : p.WithOption(k);
                     string at = p.Options.Length == 0 ? $"{g.Code}/{p.Code}" : $"{g.Code}/{p.Code}[{p.Options[k].Code}]";
                     foreach (string problem in ValidateVariant(g, v, at)) yield return problem;
@@ -428,10 +453,9 @@ public class GarmentCatalog
         {
             if (BadRect(r, g.TextureWidth, g.TextureHeight)) yield return $"{at}: region [{string.Join(",", r)}] outside {g.TextureWidth}x{g.TextureHeight}";
         }
-        if (p.IsFixed && p.Optional) yield return $"{at}: a fixed part (fixedTexture) cannot be optional";
         var fc = p.FixedCrop;
         if (fc != null && (!p.IsFixed || fc.Length != 4 || fc[0] < 0 || fc[1] < 0 || fc[0] >= fc[2] || fc[1] >= fc[3])) yield return $"{at}: bad fixedCrop (or no fixedTexture)";
-        if (p.Elements.Length > 0 && !p.Optional && p.Chosen < 0) yield return $"{at}: elements listed on a required part (only optional parts hide elements)";
+        if (p.Elements.Length > 0 && p.Chosen < 0) yield return $"{at}: elements listed on a part without options (a part's elements belong to its options)";
         if (p.SplitFrom != null && g.PartIndex(p.SplitFrom) < 0) yield return $"{at}: splitFrom '{p.SplitFrom}' unknown";
         if (p.Layer < 0) yield return $"{at}: layer {p.Layer} (0 = base, higher = on top)";
         if (p.Shade && string.IsNullOrEmpty(g.ShadingTexture)) yield return $"{at}: shade without the garment's shadingTexture";
