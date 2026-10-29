@@ -16,7 +16,7 @@
 		// Hood: crown, sides and point (scripts/clothing-uv.py ... --grid 2, group A).
 		{ code: "hood", shade: true, regions: [[24, 0, 56, 16], [14, 32, 16, 33], [26, 32, 28, 33], [12, 33, 30, 34], [10, 34, 32, 35], [8, 35, 34, 36], [6, 36, 36, 37], [4, 37, 37, 38], [4, 38, 38, 39]], materials: ["cloth", "leather"] },
 		// Mantle over the shoulders: cloth, leather or a pelt; left empty, it is not part of the model.
-		{ code: "mantle", shade: true, regions: [[42, 19, 54, 39]], materials: ["textile"], elements: ["neckshoulders"], options: [{ code: "none" }, { code: "mantle" }] }
+		{ code: "mantle", shade: true, regions: [[44, 20, 52, 21], [43, 21, 53, 22], [42, 22, 54, 29], [42, 29, 46, 30], [50, 29, 54, 30], [42, 30, 45, 35], [51, 30, 54, 35], [42, 35, 46, 36], [50, 35, 54, 36], [43, 36, 53, 37], [44, 37, 52, 38], [45, 38, 51, 39]], materials: ["textile"], elements: ["neckshoulders"], options: [{ code: "none" }, { code: "mantle" }] }
 	],
 	itemType: {
 		textures: {
