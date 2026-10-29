@@ -3,6 +3,8 @@
 // squire's hood (head/squire-hood): hood elements hidehat..hidehat4 on the head, neckshoulders on the upper torso.
 // Texture 56x40 texels = 28x20 shape units (2 texels per unit, like vanilla).
 {
+	// Body-space wrap layout 2 (lane/wrap-closure): nested hat boxes share rows (vanilla layout): the first face's coordinates keep the visible strips continuous.
+	wrapOwner: "first",
 	code: "hood",
 	order: 100,
 	dressType: "head",

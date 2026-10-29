@@ -172,11 +172,13 @@ public sealed class BodyWrapMap
 
     /// <summary>
     /// Map of <paramref name="surf"/> for layout <paramref name="version"/>; <paramref name="seams"/> = the recipe's <see cref="GarmentDef.WrapSeam"/>
-    /// (version 2: where a ring closes, by segment code or element name: front, back, left, right, inner, outer).
+    /// (version 2: where a ring closes, by segment code or element name: front, back, left, right, inner, outer); <paramref name="owner"/> = the
+    /// recipe's <see cref="GarmentDef.WrapOwner"/> (version 2: "first" = a shared texel keeps the first face's coordinates).
     /// </summary>
-    public static BodyWrapMap Build(GarmentSurface surf, int version = 1, IReadOnlyDictionary<string, string>? seams = null)
+    public static BodyWrapMap Build(GarmentSurface surf, int version = 1, IReadOnlyDictionary<string, string>? seams = null, string? owner = null)
     {
         var map = new BodyWrapMap(surf.Width, surf.Height, version);
+        bool ownerFirst = owner == WrapOwnerFirst;
         var frames = new Frame?[BodySegments.Count];
         for (int s = 0; s < BodySegments.Count; s++)
             frames[s] = surf.Bones.TryGetValue(BodySegments.FrameBones[s], out var b) ? new Frame(b.m, b.size) : null;
@@ -214,7 +216,7 @@ public sealed class BodyWrapMap
                 foreach (int f in surf.FacesOf(x, y))
                 {
                     if (!faceCoords.TryGetValue(f, out var fc) || !fc.ContainsKey(i)) continue;
-                    if (version < 2) { best = f; break; }
+                    if (version < 2 || ownerFirst) { best = f; break; }
                     double w = Weight(f);
                     if (w > bw) { best = f; bw = w; }
                 }
@@ -247,6 +249,8 @@ public sealed class BodyWrapMap
     /// the inner side (under the arm, inside of the leg; the torso's own centre: its left flank), the head: the back. <paramref name="lat"/> =
     /// z component (torso frame) of each ring role's normal; <paramref name="word"/> = the recipe's override.
     /// </summary>
+    public const string WrapOwnerVisible = "visible", WrapOwnerFirst = "first";
+
     public static readonly string[] SeamWords = { "front", "back", "left", "right", "inner", "outer" };
 
     static int SeamRole(int segment, string? word, int shiftT, double[] lat)
@@ -460,7 +464,7 @@ public static class BodyWrapCache
 
     /// <summary>Map of the recipe for layout <paramref name="version"/> (<see cref="WrapLayout.Version"/>; default the current one).</summary>
     public static BodyWrapMap? Map(ICoreAPI api, GarmentDef def, int version = WrapLayout.CurrentVersion)
-        => Cache(api).GetOrAdd(def.Code + "#" + version, _ => Surface(api, def) is { } s ? BodyWrapMap.Build(s, version, def.WrapSeam) : null);
+        => Cache(api).GetOrAdd(def.Code + "#" + version, _ => Surface(api, def) is { } s ? BodyWrapMap.Build(s, version, def.WrapSeam, def.WrapOwner) : null);
 
     /// <summary>Composition input for <paramref name="layout"/> (null = UV space: no layout, or the map failed).</summary>
     public static BodyWrap? For(ICoreAPI? api, GarmentDef def, WrapLayout? layout)

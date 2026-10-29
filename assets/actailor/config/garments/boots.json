@@ -7,6 +7,8 @@
 // --part upper-right=shoeR --part upper-left=shoeL --part fur=shoefluffR,shoefluffL --part sole=shoeR/down,shoeL/down.
 // The sole is the down face of each boot box (a hidden top face and the lining go with the upper).
 {
+	// Body-space wrap layout 2 (lane/wrap-closure): the lining and fur faces share texels with the upper (vanilla layout): the first face's coordinates keep the upper continuous.
+	wrapOwner: "first",
 	code: "boots",
 	order: 180,
 	dressType: "foot",
